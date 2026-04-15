@@ -1050,10 +1050,7 @@ async function buildWeek() {
   const endISO = (() => { const e = new Date(dates[6]); e.setHours(23,59,59); return e.toISOString(); })();
   events = await fetchEvents(startISO, endISO);
 
-  // If no events from API, use demo
-  if (!events || events.length === 0) {
-    events = buildDemoEvents(dates);
-  }
+  // No demo fallback — si no hay eventos, la semana aparece vacía
 
   // Dot indicators in header
   dates.forEach((d, i) => {
