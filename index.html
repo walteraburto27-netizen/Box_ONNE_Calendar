@@ -774,11 +774,18 @@ body::before {
 
 <script>
 // ════════════════════════════════════════════════════════════════════
-// CONFIG — these match Vercel env vars; PIN validation is server-side
-// Change ADMIN_PIN / STAFF_PIN in Vercel dashboard
+// CONFIG — PINs se pueden cambiar en Vercel env vars (ADMIN_PIN / STAFF_PIN)
+// Para cambiarlos sin tocar código: actualiza las env vars en Vercel y redeploy
 // ════════════════════════════════════════════════════════════════════
-const ADMIN_PIN = '1234';  // Override in Vercel → ADMIN_PIN env var (for client preview only)
-const STAFF_PIN = '0000';  // Override in Vercel → STAFF_PIN env var
+const ADMIN_PIN = '4025';
+const STAFF_PIN = '4040';
+
+// ── Soporte teclado físico ───────────────────────────────────────────
+document.addEventListener('keydown', (e) => {
+  if (document.getElementById('loginScreen').style.display === 'none') return;
+  if (e.key >= '0' && e.key <= '9') pinKey(e.key);
+  if (e.key === 'Backspace') pinDel();
+});
 
 // ── State ────────────────────────────────────────────────────────────
 let role     = null;
