@@ -20,7 +20,18 @@ async function getAccessToken() {
     }),
   });
   const data = await res.json();
-  if (!data.access_token) throw new Error('Token refresh failed: ' + JSON.stringify(data));
+  if (!data.access_token) {
+    const detail = {
+      error: data.error,
+      error_description: data.error_description,
+      has_client_id: !!process.env.GOOGLE_CLIENT_ID,
+      has_client_secret: !!process.env.GOOGLE_CLIENT_SECRET,
+      has_refresh_token: !!process.env.GOOGLE_REFRESH_TOKEN,
+      has_calendar_id: !!process.env.CALENDAR_ID,
+      refresh_token_prefix: process.env.GOOGLE_REFRESH_TOKEN?.slice(0,6),
+    };
+    throw new Error(JSON.stringify(detail));
+  }
   return data.access_token;
 }
 
