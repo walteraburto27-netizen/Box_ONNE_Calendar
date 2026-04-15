@@ -1,0 +1,1207 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#080808">
+<title>Box ONNE</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Jost:wght@200;300;400;500;600;700&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+/* ── Variables ─────────────────────────────────────────────────────── */
+:root {
+  --bg:          #080808;
+  --bg2:         #111111;
+  --surface:     #161616;
+  --surface2:    #202020;
+  --border:      #282828;
+  --border2:     #333;
+  --sage:        #8fa888;
+  --sage-light:  #b5c9af;
+  --sage-glow:   rgba(143,168,136,0.18);
+  --sage-dim:    #3d5240;
+  --white:       #f0efe8;
+  --muted:       #666;
+  --muted2:      #444;
+  --eval:        #8fa888;
+  --clase:       #7a9cc2;
+  --blocked:     #c47a7a;
+  --nutri:       #c4a96b;
+  --eval-bg:     rgba(143,168,136,0.12);
+  --clase-bg:    rgba(122,156,194,0.12);
+  --blocked-bg:  rgba(196,122,122,0.12);
+  --nutri-bg:    rgba(196,169,107,0.12);
+}
+
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+
+html, body {
+  background: var(--bg);
+  color: var(--white);
+  font-family: 'Jost', sans-serif;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* ── Grain overlay ──────────────────────────────────────────────────── */
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+  opacity: 0.025;
+  pointer-events: none;
+  z-index: 9999;
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   LOGIN SCREEN
+═══════════════════════════════════════════════════════════════════ */
+#loginScreen {
+  position: fixed; inset: 0;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  background: var(--bg);
+  z-index: 100;
+  gap: 0;
+  transition: opacity 0.4s ease;
+}
+
+#loginScreen.hidden { opacity: 0; pointer-events: none; }
+
+.login-logo {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.35em;
+  color: var(--sage);
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+
+.login-sub {
+  font-size: 22px;
+  font-weight: 200;
+  letter-spacing: 0.08em;
+  color: var(--white);
+  margin-bottom: 52px;
+}
+
+.login-sub span { color: var(--sage); font-weight: 400; }
+
+.pin-display {
+  display: flex;
+  gap: 14px;
+  margin-bottom: 40px;
+  height: 12px;
+  align-items: center;
+}
+
+.pin-dot {
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  border: 1.5px solid var(--border2);
+  background: transparent;
+  transition: all 0.2s;
+}
+
+.pin-dot.filled {
+  background: var(--sage);
+  border-color: var(--sage);
+  box-shadow: 0 0 10px var(--sage-glow);
+}
+
+.pin-error {
+  font-size: 12px;
+  color: var(--blocked);
+  letter-spacing: 0.05em;
+  margin-top: -28px;
+  margin-bottom: 28px;
+  height: 16px;
+  text-align: center;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.pin-error.show { opacity: 1; }
+
+.numpad {
+  display: grid;
+  grid-template-columns: repeat(3, 72px);
+  gap: 12px;
+}
+
+.num-btn {
+  width: 72px; height: 72px;
+  border-radius: 50%;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--white);
+  font-family: 'Jost', sans-serif;
+  font-size: 22px;
+  font-weight: 300;
+  cursor: pointer;
+  transition: all 0.12s;
+  display: flex; align-items: center; justify-content: center;
+  -webkit-user-select: none;
+}
+
+.num-btn:active {
+  background: var(--surface2);
+  transform: scale(0.94);
+  border-color: var(--sage-dim);
+}
+
+.num-btn.del {
+  font-size: 18px;
+  color: var(--muted);
+}
+
+.num-btn.empty { background: transparent; border-color: transparent; pointer-events: none; }
+
+/* ════════════════════════════════════════════════════════════════════
+   APP SHELL
+═══════════════════════════════════════════════════════════════════ */
+#app {
+  display: none;
+  flex-direction: column;
+  height: 100dvh;
+  max-width: 430px;
+  margin: 0 auto;
+}
+
+#app.visible { display: flex; }
+
+/* ── Top bar ─────────────────────────────────────────────────────── */
+.topbar {
+  flex-shrink: 0;
+  padding: 52px 20px 0;
+  background: var(--bg);
+}
+
+.topbar-row1 {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 16px;
+}
+
+.brand { display: flex; flex-direction: column; gap: 2px; }
+
+.brand-name {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.3em;
+  color: var(--sage);
+  text-transform: uppercase;
+}
+
+.brand-title {
+  font-size: 22px;
+  font-weight: 200;
+  letter-spacing: 0.04em;
+  color: var(--white);
+  line-height: 1;
+}
+
+.week-nav {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.nav-btn {
+  width: 34px; height: 34px;
+  border-radius: 9px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 16px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  transition: all 0.12s;
+}
+
+.nav-btn:active { background: var(--surface2); color: var(--white); border-color: var(--sage-dim); }
+
+.today-btn {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  color: var(--sage);
+  border: 1px solid var(--sage-dim);
+  border-radius: 20px;
+  padding: 5px 12px;
+  cursor: pointer;
+  transition: all 0.12s;
+}
+
+.today-btn:active { background: var(--sage-glow); }
+
+/* ── Week header ─────────────────────────────────────────────────── */
+.week-range {
+  font-size: 12px;
+  font-weight: 300;
+  color: var(--muted);
+  letter-spacing: 0.06em;
+  margin-bottom: 14px;
+  font-family: 'DM Mono', monospace;
+}
+
+.week-days-header {
+  display: grid;
+  grid-template-columns: 44px repeat(7, 1fr);
+  gap: 3px;
+  margin-bottom: 2px;
+}
+
+.wday-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 2px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background 0.12s;
+}
+
+.wday-cell:active { background: var(--surface); }
+.wday-cell.today-col { background: var(--sage-dim); }
+.wday-cell.today-col .wday-num { color: var(--sage-light); font-weight: 600; }
+.wday-cell.today-col .wday-label { color: var(--sage); }
+
+.wday-label {
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  color: var(--muted);
+  text-transform: uppercase;
+}
+
+.wday-num {
+  font-size: 16px;
+  font-weight: 300;
+  color: var(--white);
+  line-height: 1;
+}
+
+.wday-dots {
+  display: flex; gap: 2px; height: 5px; align-items: center;
+}
+
+.wdot {
+  width: 4px; height: 4px;
+  border-radius: 50%;
+}
+
+/* ── Divider ─────────────────────────────────────────────────────── */
+.hline {
+  height: 1px;
+  background: var(--border);
+  margin: 0 0 0;
+}
+
+/* ── Scrollable timeline ─────────────────────────────────────────── */
+.timeline-wrap {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 100px;
+}
+
+.timeline-wrap::-webkit-scrollbar { display: none; }
+
+.timeline-grid {
+  display: grid;
+  grid-template-columns: 44px repeat(7, 1fr);
+  gap: 3px;
+  padding: 4px 20px 0 20px;
+}
+
+.time-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  color: var(--muted2);
+  text-align: right;
+  padding-right: 8px;
+  padding-top: 2px;
+  line-height: 1;
+}
+
+.hour-row {
+  display: contents;
+}
+
+.hour-cell {
+  min-height: 52px;
+  border-top: 1px solid var(--border);
+  position: relative;
+  cursor: pointer;
+  transition: background 0.1s;
+}
+
+.hour-cell:active { background: var(--surface); }
+
+/* ── Events inside cells ─────────────────────────────────────────── */
+.ev-block {
+  position: absolute;
+  left: 2px; right: 2px;
+  top: 2px;
+  border-radius: 7px;
+  padding: 4px 7px;
+  cursor: pointer;
+  overflow: hidden;
+  transition: transform 0.12s, opacity 0.12s;
+  z-index: 2;
+  animation: evIn 0.25s ease forwards;
+  opacity: 0;
+}
+
+@keyframes evIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+.ev-block:active { transform: scale(0.97); opacity: 0.8; }
+
+.ev-block.eval    { background: var(--eval-bg);    border-left: 2px solid var(--eval); }
+.ev-block.clase   { background: var(--clase-bg);   border-left: 2px solid var(--clase); }
+.ev-block.blocked { background: var(--blocked-bg); border-left: 2px solid var(--blocked); }
+.ev-block.nutricion { background: var(--nutri-bg); border-left: 2px solid var(--nutri); }
+
+.ev-title {
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--white);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.3;
+}
+
+.ev-time {
+  font-family: 'DM Mono', monospace;
+  font-size: 8px;
+  color: var(--muted);
+  margin-top: 1px;
+}
+
+/* ── FAB ──────────────────────────────────────────────────────────── */
+.fab {
+  position: fixed;
+  bottom: 28px; right: 20px;
+  width: 54px; height: 54px;
+  background: var(--sage);
+  border-radius: 16px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 26px;
+  color: #080808;
+  cursor: pointer;
+  box-shadow: 0 8px 28px rgba(143,168,136,0.35);
+  transition: transform 0.15s, box-shadow 0.15s;
+  z-index: 50;
+  font-weight: 300;
+  line-height: 1;
+}
+
+.fab:active { transform: scale(0.93); box-shadow: 0 4px 16px rgba(143,168,136,0.2); }
+
+/* ── Bottom role badge ───────────────────────────────────────────── */
+.role-badge {
+  position: fixed;
+  bottom: 36px; left: 20px;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  color: var(--muted);
+  text-transform: uppercase;
+  display: flex; align-items: center; gap: 6px;
+}
+
+.role-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--sage);
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   MODAL — New Event
+═══════════════════════════════════════════════════════════════════ */
+.modal-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.7);
+  backdrop-filter: blur(6px);
+  z-index: 200;
+  display: flex; align-items: flex-end;
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.25s;
+}
+
+.modal-overlay.open { opacity: 1; pointer-events: all; }
+
+.modal-sheet {
+  width: 100%;
+  max-width: 430px;
+  margin: 0 auto;
+  background: var(--bg2);
+  border-radius: 24px 24px 0 0;
+  border: 1px solid var(--border);
+  border-bottom: none;
+  padding: 24px 24px 48px;
+  transform: translateY(100%);
+  transition: transform 0.3s cubic-bezier(0.32,0.72,0,1);
+}
+
+.modal-overlay.open .modal-sheet { transform: translateY(0); }
+
+.modal-handle {
+  width: 36px; height: 4px;
+  background: var(--border2);
+  border-radius: 2px;
+  margin: 0 auto 24px;
+}
+
+.modal-title {
+  font-size: 18px;
+  font-weight: 400;
+  color: var(--white);
+  margin-bottom: 24px;
+  letter-spacing: 0.02em;
+}
+
+.form-group {
+  margin-bottom: 16px;
+}
+
+.form-label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  color: var(--muted);
+  text-transform: uppercase;
+  margin-bottom: 8px;
+  display: block;
+}
+
+.form-input {
+  width: 100%;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px 16px;
+  color: var(--white);
+  font-family: 'Jost', sans-serif;
+  font-size: 15px;
+  font-weight: 300;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.form-input:focus { border-color: var(--sage-dim); }
+
+.type-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.type-chip {
+  padding: 8px 4px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  text-align: center;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 0.12s;
+}
+
+.type-chip.selected-eval    { border-color: var(--eval);    color: var(--eval);    background: var(--eval-bg); }
+.type-chip.selected-clase   { border-color: var(--clase);   color: var(--clase);   background: var(--clase-bg); }
+.type-chip.selected-blocked { border-color: var(--blocked); color: var(--blocked); background: var(--blocked-bg); }
+.type-chip.selected-nutri   { border-color: var(--nutri);   color: var(--nutri);   background: var(--nutri-bg); }
+
+.time-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.submit-btn {
+  width: 100%;
+  padding: 15px;
+  background: var(--sage);
+  border: none;
+  border-radius: 14px;
+  color: #080808;
+  font-family: 'Jost', sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  margin-top: 8px;
+  transition: opacity 0.15s, transform 0.12s;
+}
+
+.submit-btn:active { opacity: 0.85; transform: scale(0.98); }
+.submit-btn:disabled { opacity: 0.4; pointer-events: none; }
+
+/* ── Event detail modal ──────────────────────────────────────────── */
+.detail-sheet {
+  padding: 24px 24px 48px;
+}
+
+.detail-type-bar {
+  width: 40px; height: 3px;
+  border-radius: 2px;
+  margin-bottom: 20px;
+}
+
+.detail-name {
+  font-size: 20px;
+  font-weight: 400;
+  color: var(--white);
+  margin-bottom: 6px;
+  line-height: 1.3;
+}
+
+.detail-time {
+  font-family: 'DM Mono', monospace;
+  font-size: 12px;
+  color: var(--muted);
+  margin-bottom: 20px;
+}
+
+.detail-desc {
+  font-size: 13px;
+  font-weight: 300;
+  color: var(--muted);
+  line-height: 1.6;
+  margin-bottom: 24px;
+}
+
+.delete-btn {
+  width: 100%;
+  padding: 13px;
+  background: var(--blocked-bg);
+  border: 1px solid var(--blocked);
+  border-radius: 14px;
+  color: var(--blocked);
+  font-family: 'Jost', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.delete-btn:active { opacity: 0.7; }
+
+/* ── Loading spinner ─────────────────────────────────────────────── */
+.spinner {
+  width: 20px; height: 20px;
+  border: 2px solid var(--border2);
+  border-top-color: var(--sage);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  margin: 32px auto;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.loading-row {
+  display: flex; align-items: center; justify-content: center;
+  grid-column: 1 / -1;
+  padding: 24px;
+}
+
+/* ── Toast ───────────────────────────────────────────────────────── */
+.toast {
+  position: fixed;
+  bottom: 90px; left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  border-radius: 12px;
+  padding: 10px 20px;
+  font-size: 13px;
+  color: var(--white);
+  opacity: 0;
+  transition: all 0.3s;
+  z-index: 300;
+  white-space: nowrap;
+}
+
+.toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+</style>
+</head>
+<body>
+
+<!-- ════════ LOGIN ════════ -->
+<div id="loginScreen">
+  <div class="login-logo">ONNE Training Studio</div>
+  <div class="login-sub">Box <span>Calendar</span></div>
+
+  <div class="pin-display" id="pinDisplay">
+    <div class="pin-dot" id="d0"></div>
+    <div class="pin-dot" id="d1"></div>
+    <div class="pin-dot" id="d2"></div>
+    <div class="pin-dot" id="d3"></div>
+  </div>
+
+  <div class="pin-error" id="pinError">PIN incorrecto</div>
+
+  <div class="numpad">
+    <div class="num-btn" onclick="pinKey('1')">1</div>
+    <div class="num-btn" onclick="pinKey('2')">2</div>
+    <div class="num-btn" onclick="pinKey('3')">3</div>
+    <div class="num-btn" onclick="pinKey('4')">4</div>
+    <div class="num-btn" onclick="pinKey('5')">5</div>
+    <div class="num-btn" onclick="pinKey('6')">6</div>
+    <div class="num-btn" onclick="pinKey('7')">7</div>
+    <div class="num-btn" onclick="pinKey('8')">8</div>
+    <div class="num-btn" onclick="pinKey('9')">9</div>
+    <div class="num-btn empty"></div>
+    <div class="num-btn" onclick="pinKey('0')">0</div>
+    <div class="num-btn del" onclick="pinDel()">⌫</div>
+  </div>
+</div>
+
+<!-- ════════ APP ════════ -->
+<div id="app">
+
+  <div class="topbar">
+    <div class="topbar-row1">
+      <div class="brand">
+        <div class="brand-name">Box ONNE</div>
+        <div class="brand-title" id="weekRangeTitle">Semana</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <div class="today-btn" onclick="goToday()">Hoy</div>
+        <div class="nav-btn" onclick="changeWeek(-1)">‹</div>
+        <div class="nav-btn" onclick="changeWeek(1)">›</div>
+      </div>
+    </div>
+
+    <!-- Day headers -->
+    <div class="week-days-header" id="weekHeader">
+      <div></div><!-- spacer for time col -->
+    </div>
+  </div>
+
+  <div class="hline"></div>
+
+  <!-- Timeline -->
+  <div class="timeline-wrap" id="timelineWrap">
+    <div class="timeline-grid" id="timelineGrid">
+      <div class="loading-row"><div class="spinner"></div></div>
+    </div>
+  </div>
+
+  <!-- FAB -->
+  <div class="fab" id="fabBtn">+</div>
+
+  <!-- Role badge -->
+  <div class="role-badge">
+    <div class="role-dot"></div>
+    <span id="roleBadge">Cargando</span>
+  </div>
+</div>
+
+<!-- ════════ MODAL: New Event ════════ -->
+<div class="modal-overlay" id="newEventModal">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Nuevo evento</div>
+
+    <div class="form-group">
+      <label class="form-label">Título</label>
+      <input class="form-input" id="evTitle" placeholder="Ej: Evaluación — Camila R." />
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Tipo</label>
+      <div class="type-row">
+        <div class="type-chip" data-type="eval" onclick="selectType(this)">Evaluación</div>
+        <div class="type-chip" data-type="clase" onclick="selectType(this)">Clase / Box</div>
+        <div class="type-chip" data-type="blocked" onclick="selectType(this)">Bloqueado</div>
+        <div class="type-chip" data-type="nutri" onclick="selectType(this)">Nutrición</div>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Fecha</label>
+      <input class="form-input" id="evDate" type="date" />
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Horario</label>
+      <div class="time-row">
+        <input class="form-input" id="evStart" type="time" value="09:00" />
+        <input class="form-input" id="evEnd" type="time" value="10:00" />
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Nota (opcional)</label>
+      <input class="form-input" id="evDesc" placeholder="Profesor, número de socios…" />
+    </div>
+
+    <button class="submit-btn" id="submitBtn" onclick="submitEvent()">Guardar en calendario</button>
+  </div>
+</div>
+
+<!-- ════════ MODAL: Event Detail ════════ -->
+<div class="modal-overlay" id="detailModal">
+  <div class="modal-sheet detail-sheet">
+    <div class="modal-handle"></div>
+    <div class="detail-type-bar" id="detailTypeBar"></div>
+    <div class="detail-name" id="detailName"></div>
+    <div class="detail-time" id="detailTime"></div>
+    <div class="detail-desc" id="detailDesc"></div>
+    <button class="delete-btn" id="deleteBtn" onclick="deleteEvent()">Eliminar evento</button>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ════════════════════════════════════════════════════════════════════
+// CONFIG — these match Vercel env vars; PIN validation is server-side
+// Change ADMIN_PIN / STAFF_PIN in Vercel dashboard
+// ════════════════════════════════════════════════════════════════════
+const ADMIN_PIN = '1234';  // Override in Vercel → ADMIN_PIN env var (for client preview only)
+const STAFF_PIN = '0000';  // Override in Vercel → STAFF_PIN env var
+
+// ── State ────────────────────────────────────────────────────────────
+let role     = null;
+let pin      = '';
+let events   = [];
+let weekOff  = 0;   // weeks offset from today
+let selEvent = null;
+let selType  = null;
+
+const DAYS_SHORT = ['L','M','X','J','V','S','D'];
+const DAYS_FULL  = ['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo'];
+const MONTHS     = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+const HOURS      = [6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21];
+
+const TYPE_COLORS = { eval:'var(--eval)', clase:'var(--clase)', blocked:'var(--blocked)', nutricion:'var(--nutri)', nutri:'var(--nutri)' };
+
+// ════════════════════════════════════════════════════════════════════
+// PIN LOGIN
+// ════════════════════════════════════════════════════════════════════
+function pinKey(k) {
+  if (pin.length >= 4) return;
+  pin += k;
+  updateDots();
+  if (pin.length === 4) setTimeout(checkPin, 120);
+}
+
+function pinDel() {
+  pin = pin.slice(0, -1);
+  updateDots();
+}
+
+function updateDots() {
+  for (let i = 0; i < 4; i++) {
+    document.getElementById(`d${i}`).classList.toggle('filled', i < pin.length);
+  }
+}
+
+function checkPin() {
+  if (pin === ADMIN_PIN) {
+    role = 'admin';
+    enterApp();
+  } else if (pin === STAFF_PIN) {
+    role = 'staff';
+    enterApp();
+  } else {
+    const err = document.getElementById('pinError');
+    err.classList.add('show');
+    pin = '';
+    updateDots();
+    setTimeout(() => err.classList.remove('show'), 2000);
+  }
+}
+
+function enterApp() {
+  const ls = document.getElementById('loginScreen');
+  ls.classList.add('hidden');
+  setTimeout(() => ls.style.display = 'none', 400);
+
+  const app = document.getElementById('app');
+  app.classList.add('visible');
+
+  document.getElementById('roleBadge').textContent = role === 'admin' ? 'Zelena · Admin' : 'Profesor';
+  if (role === 'staff') document.getElementById('fabBtn').style.display = 'flex'; // staff can also add
+
+  buildWeek();
+}
+
+// ════════════════════════════════════════════════════════════════════
+// WEEK HELPERS
+// ════════════════════════════════════════════════════════════════════
+function getWeekDates(offset = 0) {
+  const now = new Date();
+  const dow = (now.getDay() + 6) % 7; // Mon=0
+  const mon = new Date(now);
+  mon.setDate(now.getDate() - dow + offset * 7);
+  mon.setHours(0,0,0,0);
+
+  return Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(mon);
+    d.setDate(mon.getDate() + i);
+    return d;
+  });
+}
+
+function isoDate(d) {
+  return d.toISOString().split('T')[0];
+}
+
+function fmt(d) {
+  return `${d.getDate()} ${MONTHS[d.getMonth()]}`;
+}
+
+function isToday(d) {
+  const t = new Date();
+  return d.getDate() === t.getDate() && d.getMonth() === t.getMonth() && d.getFullYear() === t.getFullYear();
+}
+
+// ════════════════════════════════════════════════════════════════════
+// API CALLS
+// ════════════════════════════════════════════════════════════════════
+async function fetchEvents(start, end) {
+  try {
+    const r = await fetch(`/api/calendar?start=${encodeURIComponent(start)}&end=${encodeURIComponent(end)}`, {
+      headers: { 'x-pin': role === 'admin' ? ADMIN_PIN : STAFF_PIN }
+    });
+    const data = await r.json();
+    return data.events || [];
+  } catch {
+    return DEMO_EVENTS;  // fallback demo if API not configured
+  }
+}
+
+async function createEvent(payload) {
+  try {
+    const r = await fetch('/api/calendar', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-pin': role === 'admin' ? ADMIN_PIN : STAFF_PIN
+      },
+      body: JSON.stringify(payload)
+    });
+    return await r.json();
+  } catch (e) {
+    return { error: e.message };
+  }
+}
+
+async function deleteEventAPI(id) {
+  try {
+    const r = await fetch(`/api/calendar?id=${id}`, {
+      method: 'DELETE',
+      headers: { 'x-pin': ADMIN_PIN }
+    });
+    return await r.json();
+  } catch (e) {
+    return { error: e.message };
+  }
+}
+
+// ════════════════════════════════════════════════════════════════════
+// DEMO EVENTS (fallback when API not configured)
+// ════════════════════════════════════════════════════════════════════
+function buildDemoEvents(dates) {
+  const demos = [];
+  const base = [
+    { hour:9,  min:0,  dur:45, title:'Evaluación — Camila R.',  type:'eval',    desc:'Zelena Corbalán' },
+    { hour:10, min:0,  dur:60, title:'Clase Funcional',          type:'clase',   desc:'Prof. Matías · 8 socios' },
+    { hour:14, min:0,  dur:45, title:'Evaluación — Tomás V.',   type:'eval',    desc:'Zelena Corbalán' },
+  ];
+  const base2 = [
+    { hour:9,  min:30, dur:45, title:'Evaluación — María F.',   type:'eval',    desc:'Zelena Corbalán' },
+    { hour:11, min:0,  dur:60, title:'HIIT Avanzado',            type:'clase',   desc:'Prof. Sofía · 6 socios' },
+  ];
+  const base3 = [
+    { hour:12, min:0,  dur:120,title:'Box Bloqueado — Mantención',type:'blocked',desc:'Equipo ONNE' },
+    { hour:15, min:0,  dur:60, title:'Consulta Nutrición',        type:'nutricion',desc:'Zelena Corbalán' },
+  ];
+
+  dates.forEach((d, i) => {
+    const pool = i % 3 === 0 ? base : i % 3 === 1 ? base2 : base3;
+    pool.forEach(ev => {
+      const start = new Date(d);
+      start.setHours(ev.hour, ev.min, 0, 0);
+      const end = new Date(start);
+      end.setMinutes(end.getMinutes() + ev.dur);
+      demos.push({
+        id: `demo-${i}-${ev.hour}`,
+        title: ev.title,
+        start: start.toISOString(),
+        end:   end.toISOString(),
+        desc:  ev.desc,
+        type:  ev.type,
+      });
+    });
+  });
+  return demos;
+}
+
+// ════════════════════════════════════════════════════════════════════
+// BUILD WEEK VIEW
+// ════════════════════════════════════════════════════════════════════
+async function buildWeek() {
+  const dates = getWeekDates(weekOff);
+  const mon = dates[0], sun = dates[6];
+
+  // Title
+  if (mon.getMonth() === sun.getMonth()) {
+    document.getElementById('weekRangeTitle').textContent =
+      `${mon.getDate()}–${sun.getDate()} ${MONTHS[mon.getMonth()]}`;
+  } else {
+    document.getElementById('weekRangeTitle').textContent =
+      `${fmt(mon)} – ${fmt(sun)}`;
+  }
+
+  // Day headers
+  const header = document.getElementById('weekHeader');
+  header.innerHTML = '<div></div>';
+  dates.forEach((d, i) => {
+    const cell = document.createElement('div');
+    cell.className = 'wday-cell' + (isToday(d) ? ' today-col' : '');
+    cell.innerHTML = `
+      <div class="wday-label">${DAYS_SHORT[i]}</div>
+      <div class="wday-num">${d.getDate()}</div>
+      <div class="wday-dots" id="wdots-${i}"></div>
+    `;
+    cell.onclick = () => scrollToHour(8);
+    header.appendChild(cell);
+  });
+
+  // Loading
+  const grid = document.getElementById('timelineGrid');
+  grid.innerHTML = '<div class="loading-row"><div class="spinner"></div></div>';
+
+  // Fetch
+  const startISO = dates[0].toISOString();
+  const endISO = (() => { const e = new Date(dates[6]); e.setHours(23,59,59); return e.toISOString(); })();
+  events = await fetchEvents(startISO, endISO);
+
+  // If no events from API, use demo
+  if (!events || events.length === 0) {
+    events = buildDemoEvents(dates);
+  }
+
+  // Dot indicators in header
+  dates.forEach((d, i) => {
+    const dayEvs = eventsForDay(d);
+    const dots = document.getElementById(`wdots-${i}`);
+    if (!dots) return;
+    const types = [...new Set(dayEvs.map(e => e.type))].slice(0, 3);
+    dots.innerHTML = types.map(t => `<div class="wdot" style="background:${TYPE_COLORS[t]||'var(--sage)'}"></div>`).join('');
+  });
+
+  // Build grid
+  grid.innerHTML = '';
+  HOURS.forEach(h => {
+    // Time label
+    const tl = document.createElement('div');
+    tl.className = 'time-label';
+    tl.textContent = `${h}:00`;
+    grid.appendChild(tl);
+
+    // 7 day cells
+    dates.forEach((d, di) => {
+      const cell = document.createElement('div');
+      cell.className = 'hour-cell' + (isToday(d) ? ' today-hour' : '');
+      cell.style.borderTopColor = isToday(d) ? 'rgba(143,168,136,0.2)' : '';
+      cell.onclick = () => openNewModal(d, h);
+
+      // Place events starting this hour
+      const hourEvs = events.filter(ev => {
+        const s = new Date(ev.start);
+        return isoDate(s) === isoDate(d) && s.getHours() === h;
+      });
+
+      hourEvs.forEach(ev => {
+        const s = new Date(ev.start);
+        const e2 = new Date(ev.end);
+        const durMin = (e2 - s) / 60000;
+        const heightPx = Math.max(32, (durMin / 60) * 52 - 4);
+        const block = document.createElement('div');
+        block.className = `ev-block ${ev.type || 'clase'}`;
+        block.style.height = heightPx + 'px';
+        block.style.animationDelay = (di * 0.04) + 's';
+        const hStr = `${s.getHours()}:${String(s.getMinutes()).padStart(2,'0')}`;
+        block.innerHTML = `<div class="ev-title">${ev.title}</div><div class="ev-time">${hStr}</div>`;
+        block.onclick = (e) => { e.stopPropagation(); openDetail(ev); };
+        cell.appendChild(block);
+      });
+
+      grid.appendChild(cell);
+    });
+  });
+
+  // Scroll to 8am
+  setTimeout(() => scrollToHour(8), 100);
+}
+
+function eventsForDay(d) {
+  return events.filter(ev => isoDate(new Date(ev.start)) === isoDate(d));
+}
+
+function scrollToHour(h) {
+  const wrap = document.getElementById('timelineWrap');
+  const idx = HOURS.indexOf(h);
+  if (idx < 0) return;
+  wrap.scrollTop = idx * 52;
+}
+
+// ════════════════════════════════════════════════════════════════════
+// NAVIGATION
+// ════════════════════════════════════════════════════════════════════
+function changeWeek(dir) {
+  weekOff += dir;
+  buildWeek();
+}
+
+function goToday() {
+  weekOff = 0;
+  buildWeek();
+}
+
+// ════════════════════════════════════════════════════════════════════
+// NEW EVENT MODAL
+// ════════════════════════════════════════════════════════════════════
+document.getElementById('fabBtn').onclick = () => openNewModal(new Date(), new Date().getHours());
+
+function openNewModal(date, hour) {
+  const modal = document.getElementById('newEventModal');
+  modal.classList.add('open');
+  document.getElementById('evDate').value = isoDate(date);
+  document.getElementById('evStart').value = `${String(hour).padStart(2,'0')}:00`;
+  document.getElementById('evEnd').value   = `${String(hour+1).padStart(2,'0')}:00`;
+  document.getElementById('evTitle').value = '';
+  document.getElementById('evDesc').value  = '';
+  selType = null;
+  document.querySelectorAll('.type-chip').forEach(c => c.className = 'type-chip');
+}
+
+document.getElementById('newEventModal').addEventListener('click', function(e) {
+  if (e.target === this) this.classList.remove('open');
+});
+
+function selectType(el) {
+  document.querySelectorAll('.type-chip').forEach(c => c.className = 'type-chip');
+  selType = el.dataset.type;
+  el.classList.add(`selected-${selType}`);
+}
+
+async function submitEvent() {
+  const title = document.getElementById('evTitle').value.trim();
+  const date  = document.getElementById('evDate').value;
+  const start = document.getElementById('evStart').value;
+  const end   = document.getElementById('evEnd').value;
+  const desc  = document.getElementById('evDesc').value.trim();
+
+  if (!title || !date || !start || !end) { showToast('Completa título y horario'); return; }
+
+  const btn = document.getElementById('submitBtn');
+  btn.disabled = true;
+  btn.textContent = 'Guardando…';
+
+  const payload = {
+    title,
+    start: `${date}T${start}:00`,
+    end:   `${date}T${end}:00`,
+    description: desc,
+    colorId: selType === 'blocked' ? '11' : selType === 'eval' ? '2' : selType === 'nutri' ? '5' : '7',
+  };
+
+  const res = await createEvent(payload);
+
+  btn.disabled = false;
+  btn.textContent = 'Guardar en calendario';
+
+  if (res.error) {
+    showToast('Error al guardar — modo demo activo');
+  } else {
+    showToast('✓ Evento guardado');
+  }
+
+  document.getElementById('newEventModal').classList.remove('open');
+  buildWeek();
+}
+
+// ════════════════════════════════════════════════════════════════════
+// EVENT DETAIL MODAL
+// ════════════════════════════════════════════════════════════════════
+function openDetail(ev) {
+  selEvent = ev;
+  const s = new Date(ev.start);
+  const e2 = new Date(ev.end);
+  const timeStr = `${DAYS_FULL[(s.getDay()+6)%7]}, ${s.getDate()} de ${MONTHS[s.getMonth()]}  ·  ${s.getHours()}:${String(s.getMinutes()).padStart(2,'0')} – ${e2.getHours()}:${String(e2.getMinutes()).padStart(2,'0')}`;
+
+  document.getElementById('detailTypeBar').style.background = TYPE_COLORS[ev.type] || 'var(--sage)';
+  document.getElementById('detailName').textContent = ev.title;
+  document.getElementById('detailTime').textContent = timeStr;
+  document.getElementById('detailDesc').textContent = ev.desc || '';
+
+  const delBtn = document.getElementById('deleteBtn');
+  delBtn.style.display = role === 'admin' ? 'block' : 'none';
+
+  document.getElementById('detailModal').classList.add('open');
+}
+
+document.getElementById('detailModal').addEventListener('click', function(e) {
+  if (e.target === this) this.classList.remove('open');
+});
+
+async function deleteEvent() {
+  if (!selEvent || role !== 'admin') return;
+  if (selEvent.id.startsWith('demo-')) {
+    showToast('Modo demo — conecta Google Calendar');
+    document.getElementById('detailModal').classList.remove('open');
+    return;
+  }
+  const res = await deleteEventAPI(selEvent.id);
+  document.getElementById('detailModal').classList.remove('open');
+  if (res.error) { showToast('Error al eliminar'); return; }
+  showToast('Evento eliminado');
+  buildWeek();
+}
+
+// ════════════════════════════════════════════════════════════════════
+// TOAST
+// ════════════════════════════════════════════════════════════════════
+let toastTimer;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+// ════════════════════════════════════════════════════════════════════
+// INIT — show login
+// ════════════════════════════════════════════════════════════════════
+// Update status time display
+setInterval(() => {
+  const now = new Date();
+  // could display somewhere if desired
+}, 60000);
+</script>
+</body>
+</html>
