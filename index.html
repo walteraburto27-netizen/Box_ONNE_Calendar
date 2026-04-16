@@ -38,8 +38,8 @@
   --blocked-bg:  rgba(102,96,96,0.15);
   --nutri-bg:    rgba(138,138,122,0.13);
   /* layout */
-  --hour-h:      60px;
-  --time-col:    38px;
+  --hour-h:      64px;
+  --time-col:    32px;
   --safe-bottom: env(safe-area-inset-bottom, 0px);
   --safe-top:    env(safe-area-inset-top, 0px);
 }
@@ -202,7 +202,7 @@ body::before {
 /* ── Week days header ────────────────────────────────────────────── */
 .week-days-header {
   display: grid;
-  grid-template-columns: var(--time-col) repeat(7, 1fr);
+  grid-template-columns: var(--time-col) repeat(6, 1fr);
   gap: 2px;
   padding-bottom: 6px;
 }
@@ -292,13 +292,12 @@ body::before {
   line-height: 1;
   user-select: none;
   height: var(--hour-h);
-  box-sizing: border-box;
 }
 
 .day-cols {
   flex: 1;
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
+  grid-template-columns: repeat(6, 1fr);
   gap: 2px;
   min-width: 0;
 }
@@ -364,21 +363,24 @@ body::before {
 .ev-block.nutricion { background: rgba(138,138,122,0.15); border-left: 2.5px solid #8a8a7a; }
 
 .ev-title {
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 500;
   color: var(--white);
-  white-space: nowrap;
+  line-height: 1.25;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
   overflow: hidden;
-  text-overflow: ellipsis;
-  line-height: 1.3;
+  word-break: break-word;
 }
 
 .ev-time {
   font-family: 'DM Mono', monospace;
-  font-size: 9px;
+  font-size: 8px;
   color: rgba(255,255,255,0.45);
-  margin-top: 1px;
+  margin-top: 2px;
   line-height: 1;
+  white-space: nowrap;
 }
 
 /* ── Now line ────────────────────────────────────────────────────── */
@@ -892,7 +894,7 @@ let weekOff  = 0;   // weeks offset from today
 let selEvent = null;
 let selType  = null;
 
-const DAYS_SHORT = ['L','M','X','J','V','S','D'];
+const DAYS_SHORT = ['L','M','X','J','V','S'];
 const DAYS_FULL  = ['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo'];
 const MONTHS     = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
 const HOURS      = [6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21];
@@ -973,7 +975,7 @@ function getWeekDates(offset = 0) {
   mon.setDate(now.getDate() - dow + offset * 7);
   mon.setHours(0,0,0,0);
 
-  return Array.from({ length: 7 }, (_, i) => {
+  return Array.from({ length: 6 }, (_, i) => {  // 6 days: Mon–Sat
     const d = new Date(mon);
     d.setDate(mon.getDate() + i);
     return d;
@@ -1062,21 +1064,21 @@ function buildDemoEvents(dates) {
 // ════════════════════════════════════════════════════════════════════
 // BUILD WEEK VIEW
 // ════════════════════════════════════════════════════════════════════
-const HOUR_H   = 56;   // px per hour
+const HOUR_H   = 64;   // px per hour
 const FIRST_H  = HOURS[0];
 const TOTAL_H  = HOURS.length * HOUR_H;
 
 async function buildWeek() {
   const dates = getWeekDates(weekOff);
-  const mon = dates[0], sun = dates[6];
+  const mon = dates[0], sat = dates[5];
 
   // Title
-  if (mon.getMonth() === sun.getMonth()) {
+  if (mon.getMonth() === sat.getMonth()) {
     document.getElementById('weekRangeTitle').textContent =
-      `${mon.getDate()}–${sun.getDate()} ${MONTHS[mon.getMonth()]}`;
+      `${mon.getDate()}–${sat.getDate()} ${MONTHS[mon.getMonth()]}`;
   } else {
     document.getElementById('weekRangeTitle').textContent =
-      `${fmt(mon)} – ${fmt(sun)}`;
+      `${fmt(mon)} – ${fmt(sat)}`;
   }
 
   // Day headers
@@ -1100,7 +1102,7 @@ async function buildWeek() {
 
   // Fetch
   const startISO = dates[0].toISOString();
-  const endISO = (() => { const e = new Date(dates[6]); e.setHours(23,59,59); return e.toISOString(); })();
+  const endISO = (() => { const e = new Date(dates[5]); e.setHours(23,59,59); return e.toISOString(); })();
   events = await fetchEvents(startISO, endISO);
 
   if (!events || events.length === 0) {
