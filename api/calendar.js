@@ -1,7 +1,6 @@
 // api/calendar.js
 // Vercel serverless function — Google Calendar proxy
 // Env vars needed: GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_REFRESH_TOKEN, CALENDAR_ID
-// PIN auth: ADMIN_PIN (Zelena), STAFF_PIN (profesores)
 
 const GOOGLE_TOKEN_URL = 'https://oauth2.googleapis.com/token';
 const GCAL_BASE = 'https://www.googleapis.com/calendar/v3';
@@ -20,26 +19,8 @@ async function getAccessToken() {
     }),
   });
   const data = await res.json();
-  if (!data.access_token) {
-    const detail = {
-      error: data.error,
-      error_description: data.error_description,
-      has_client_id: !!process.env.GOOGLE_CLIENT_ID,
-      has_client_secret: !!process.env.GOOGLE_CLIENT_SECRET,
-      has_refresh_token: !!process.env.GOOGLE_REFRESH_TOKEN,
-      has_calendar_id: !!process.env.CALENDAR_ID,
-      refresh_token_prefix: process.env.GOOGLE_REFRESH_TOKEN?.slice(0,6),
-    };
-    throw new Error(JSON.stringify(detail));
-  }
+  if (!data.access_token) throw new Error('Token refresh failed: ' + JSON.stringify(data));
   return data.access_token;
-}
-
-function authCheck(req) {
-  const pin = req.headers['x-pin'] || '';
-  if (pin === process.env.ADMIN_PIN)  return 'admin';
-  if (pin === process.env.STAFF_PIN)  return 'staff';
-  return null;
 }
 
 function json(res, status, data) {
@@ -51,9 +32,6 @@ function json(res, status, data) {
 export default async function handler(req, res) {
   // CORS preflight
   if (req.method === 'OPTIONS') return res.status(200).end();
-
-  const role = authCheck(req);
-  if (!role) return json(res, 401, { error: 'PIN inválido' });
 
   const calendarId = encodeURIComponent(process.env.CALENDAR_ID);
   let token;
@@ -117,7 +95,6 @@ export default async function handler(req, res) {
 
   // ── DELETE /api/calendar?id=... ──────────────────────────────────────────
   if (req.method === 'DELETE') {
-    if (role !== 'admin') return json(res, 403, { error: 'Solo admin puede eliminar' });
     const { id } = req.query;
     if (!id) return json(res, 400, { error: 'id requerido' });
 
