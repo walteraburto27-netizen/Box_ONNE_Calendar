@@ -1450,9 +1450,10 @@ function openDetail(ev) {
   document.getElementById('detailTime').textContent = timeStr;
   document.getElementById('detailDesc').textContent = ev.desc || '';
 
-  // Eliminar solo para eventos de nutrición (Zelena)
+  // Nutrición (Zelena) = bloqueado, no se puede tocar
   const isNutri = ev.type === 'nutri' || ev.type === 'nutricion';
-  document.getElementById('deleteBtn').style.display = isNutri ? 'block' : 'none';
+  document.getElementById('deleteBtn').style.display = isNutri ? 'none' : 'block';
+  document.getElementById('editBtn').style.display   = isNutri ? 'none' : 'block';
 
   document.getElementById('detailModal').classList.add('open');
 }
@@ -1463,6 +1464,8 @@ document.getElementById('detailModal').addEventListener('click', function(e) {
 
 function editEvent() {
   if (!selEvent) return;
+  const isNutri = selEvent.type === 'nutri' || selEvent.type === 'nutricion';
+  if (isNutri) return; // bloqueado
   document.getElementById('detailModal').classList.remove('open');
 
   const s  = new Date(selEvent.start);
@@ -1501,7 +1504,7 @@ function editEvent() {
 async function deleteEvent() {
   if (!selEvent) return;
   const isNutri = selEvent.type === 'nutri' || selEvent.type === 'nutricion';
-  if (!isNutri) return;
+  if (isNutri) return; // bloqueado
   if (selEvent.id.startsWith('demo-')) {
     showToast('Modo demo — no se puede eliminar');
     document.getElementById('detailModal').classList.remove('open');
