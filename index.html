@@ -12,31 +12,34 @@
 <style>
 /* ── Variables ─────────────────────────────────────────────────────── */
 :root {
-  --bg:          #080808;
-  --bg2:         #111111;
+  /* ── Colores oficiales ONNE ── */
+  --bg:          #000000;
+  --bg2:         #0d0d0d;
   --surface:     #161616;
-  --surface2:    #202020;
-  --border:      #282828;
-  --border2:     #333;
-  --sage:        #8fa888;
-  --sage-light:  #b5c9af;
-  --sage-glow:   rgba(143,168,136,0.18);
-  --sage-dim:    #3d5240;
-  --white:       #f0efe8;
-  --muted:       #666;
-  --muted2:      #444;
-  --eval:        #8fa888;
-  --clase:       #7a9cc2;
-  --blocked:     #c47a7a;
-  --nutri:       #c4a96b;
-  --eval-bg:     rgba(143,168,136,0.12);
-  --clase-bg:    rgba(122,156,194,0.12);
-  --blocked-bg:  rgba(196,122,122,0.12);
-  --nutri-bg:    rgba(196,169,107,0.12);
+  --surface2:    #1e1e1e;
+  --border:      #242424;
+  --border2:     #2e2e2e;
+  /* Steel gray — acento principal ONNE */
+  --steel:       #848E8F;
+  --steel-light: #A2A1A1;
+  --steel-dim:   #3a4040;
+  --steel-glow:  rgba(132,142,143,0.15);
+  --white:       #FFFFFF;
+  --off-white:   #f0efe8;
+  --muted:       #5a5a5a;
+  --muted2:      #383838;
+  /* Tipos de evento — adaptados a paleta ONNE */
+  --eval:        #848E8F;
+  --clase:       #A2A1A1;
+  --blocked:     #666060;
+  --nutri:       #8a8a7a;
+  --eval-bg:     rgba(132,142,143,0.14);
+  --clase-bg:    rgba(162,161,161,0.12);
+  --blocked-bg:  rgba(102,96,96,0.15);
+  --nutri-bg:    rgba(138,138,122,0.13);
   /* layout */
-  --topbar-h:    112px;
-  --hour-h:      56px;
-  --time-col:    40px;
+  --hour-h:      60px;
+  --time-col:    38px;
   --safe-bottom: env(safe-area-inset-bottom, 0px);
   --safe-top:    env(safe-area-inset-top, 0px);
 }
@@ -62,7 +65,6 @@ body {
   height: 100dvh;
   overflow: hidden;
   overscroll-behavior: none;
-  /* Smooth font rendering */
   -webkit-font-smoothing: antialiased;
 }
 
@@ -71,7 +73,7 @@ body::before {
   content: '';
   position: fixed; inset: 0;
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
-  opacity: 0.025;
+  opacity: 0.03;
   pointer-events: none;
   z-index: 9999;
 }
@@ -88,83 +90,120 @@ body::before {
   position: relative;
 }
 
-/* ── Top bar ─────────────────────────────────────────────────────── */
+/* ── Top bar — Opción C ──────────────────────────────────────────── */
 .topbar {
   flex-shrink: 0;
-  padding: calc(16px + var(--safe-top)) 16px 0;
+  padding: calc(14px + var(--safe-top)) 16px 0;
   background: var(--bg);
-  /* subtle bottom shadow to separate from grid */
-  box-shadow: 0 1px 0 var(--border);
+  border-bottom: 1px solid var(--border);
 }
 
+/* Row 1: brand left / live clock right */
 .topbar-row1 {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  margin-bottom: 14px;
+  align-items: flex-start;
+  margin-bottom: 12px;
 }
 
-.brand { display: flex; flex-direction: column; gap: 2px; }
+.brand { display: flex; flex-direction: column; gap: 3px; }
 
 .brand-name {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   font-size: 9px;
-  font-weight: 600;
-  letter-spacing: 0.32em;
-  color: var(--sage);
+  font-weight: 700;
+  letter-spacing: 0.35em;
+  color: var(--steel);
   text-transform: uppercase;
 }
 
+/* Dash before ONNE */
+.brand-name::before {
+  content: '';
+  display: block;
+  width: 16px; height: 1px;
+  background: var(--steel);
+  flex-shrink: 0;
+}
+
 .brand-title {
-  font-size: 20px;
+  font-size: 22px;
   font-weight: 200;
-  letter-spacing: 0.03em;
+  letter-spacing: 0.02em;
   color: var(--white);
   line-height: 1;
 }
 
+/* Live clock block */
+.clock-block {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+}
+
+.clock-time {
+  font-family: 'DM Mono', monospace;
+  font-size: 22px;
+  font-weight: 300;
+  color: var(--white);
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+
+.clock-date {
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  color: var(--muted);
+  text-transform: uppercase;
+}
+
+/* Nav row */
 .week-nav {
   display: flex;
   align-items: center;
   gap: 6px;
 }
 
-/* Bigger touch targets */
 .nav-btn {
-  width: 40px; height: 40px;
-  border-radius: 10px;
+  width: 32px; height: 32px;
+  border-radius: 8px;
   background: var(--surface);
   border: 1px solid var(--border);
   color: var(--muted);
-  font-size: 18px;
+  font-size: 16px;
   display: flex; align-items: center; justify-content: center;
   cursor: pointer;
-  transition: background 0.1s, color 0.1s, border-color 0.1s;
+  transition: background 0.1s, color 0.1s;
   user-select: none;
 }
 
-.nav-btn:active { background: var(--surface2); color: var(--white); border-color: var(--sage-dim); }
+.nav-btn:active { background: var(--surface2); color: var(--white); border-color: var(--steel-dim); }
 
 .today-btn {
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 0.1em;
-  color: var(--sage);
-  border: 1px solid var(--sage-dim);
-  border-radius: 20px;
-  padding: 7px 14px;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  color: var(--steel);
+  border: 1px solid var(--steel-dim);
+  border-radius: 6px;
+  padding: 6px 12px;
   cursor: pointer;
   transition: background 0.12s;
   user-select: none;
+  text-transform: uppercase;
 }
 
-.today-btn:active { background: var(--sage-glow); }
+.today-btn:active { background: var(--steel-glow); }
 
 /* ── Week days header ────────────────────────────────────────────── */
 .week-days-header {
   display: grid;
   grid-template-columns: var(--time-col) repeat(7, 1fr);
   gap: 2px;
-  margin-bottom: 0;
   padding-bottom: 6px;
 }
 
@@ -173,28 +212,27 @@ body::before {
   flex-direction: column;
   align-items: center;
   gap: 3px;
-  padding: 5px 2px 4px;
-  border-radius: 10px;
+  padding: 4px 1px;
+  border-radius: 8px;
   cursor: pointer;
   transition: background 0.12s;
-  min-width: 0; /* prevent overflow */
+  min-width: 0;
 }
 
 .wday-cell:active { background: var(--surface); }
 
-/* Today highlight: pill around the number */
-.wday-cell.today-col .wday-num-wrap {
-  background: var(--sage-dim);
-  border-radius: 8px;
-  padding: 2px 6px;
+/* Today: full steel fill */
+.wday-cell.today-col {
+  background: var(--steel);
 }
 
-.wday-cell.today-col .wday-num { color: var(--sage-light); font-weight: 600; }
-.wday-cell.today-col .wday-label { color: var(--sage); }
+.wday-cell.today-col .wday-label { color: rgba(0,0,0,0.55); }
+.wday-cell.today-col .wday-num   { color: #000; font-weight: 600; }
+.wday-cell.today-col .wday-dots .wdot { background: rgba(0,0,0,0.35) !important; }
 
 .wday-label {
-  font-size: 9px;
-  font-weight: 500;
+  font-size: 8px;
+  font-weight: 700;
   letter-spacing: 0.1em;
   color: var(--muted);
   text-transform: uppercase;
@@ -204,27 +242,20 @@ body::before {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 2px 4px;
-  border-radius: 8px;
-  min-width: 24px;
+  padding: 1px 3px;
+  border-radius: 6px;
+  min-width: 22px;
 }
 
 .wday-num {
   font-size: 15px;
   font-weight: 300;
-  color: var(--white);
+  color: var(--off-white);
   line-height: 1;
 }
 
-.wday-dots {
-  display: flex; gap: 2px; height: 4px; align-items: center;
-}
-
-.wdot {
-  width: 3px; height: 3px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
+.wday-dots { display: flex; gap: 2px; height: 4px; align-items: center; }
+.wdot { width: 3px; height: 3px; border-radius: 50%; }
 
 /* ── Scrollable timeline ─────────────────────────────────────────── */
 .timeline-wrap {
@@ -233,20 +264,18 @@ body::before {
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior-y: contain;
-  padding-bottom: calc(88px + var(--safe-bottom));
+  padding-bottom: calc(100px + var(--safe-bottom));
   scrollbar-width: none;
 }
 
 .timeline-wrap::-webkit-scrollbar { display: none; }
 
-/* Outer row: time labels + day columns side by side */
 .timeline-grid {
   display: flex;
   flex-direction: row;
   padding: 0 4px 0 0;
 }
 
-/* Left time column */
 .time-col {
   flex-shrink: 0;
   width: var(--time-col);
@@ -266,7 +295,6 @@ body::before {
   box-sizing: border-box;
 }
 
-/* Day column strip */
 .day-cols {
   flex: 1;
   display: grid;
@@ -278,14 +306,13 @@ body::before {
 .day-col {
   position: relative;
   cursor: pointer;
-  /* total height = number of hours × hour height */
 }
 
+/* Today column: subtle white tint */
 .day-col.today-col-bg {
-  background: rgba(143,168,136,0.03);
+  background: rgba(255,255,255,0.025);
 }
 
-/* Hour separator lines drawn as pseudo stripes */
 .hour-line {
   position: absolute;
   left: 0; right: 0;
@@ -295,24 +322,23 @@ body::before {
 }
 
 .hour-line.today-line {
-  background: rgba(143,168,136,0.18);
+  background: rgba(162,161,161,0.2);
 }
 
-/* Half-hour line */
 .half-line {
   position: absolute;
   left: 0; right: 0;
   height: 1px;
   background: var(--border);
-  opacity: 0.35;
+  opacity: 0.3;
   pointer-events: none;
 }
 
-/* ── Events inside day columns ───────────────────────────────────── */
+/* ── Events ──────────────────────────────────────────────────────── */
 .ev-block {
   position: absolute;
   left: 2px; right: 2px;
-  border-radius: 6px;
+  border-radius: 5px;
   padding: 3px 5px;
   cursor: pointer;
   overflow: hidden;
@@ -328,18 +354,17 @@ body::before {
   to   { opacity: 1; transform: translateY(0) scale(1); }
 }
 
-.ev-block:active {
-  transform: scale(0.96);
-  filter: brightness(1.15);
-}
+.ev-block:active { transform: scale(0.96); filter: brightness(1.2); }
 
-.ev-block.eval    { background: var(--eval-bg);    border-left: 2.5px solid var(--eval); }
-.ev-block.clase   { background: var(--clase-bg);   border-left: 2.5px solid var(--clase); }
-.ev-block.blocked { background: var(--blocked-bg); border-left: 2.5px solid var(--blocked); }
-.ev-block.nutricion { background: var(--nutri-bg); border-left: 2.5px solid var(--nutri); }
+/* Tipos — paleta ONNE steel */
+.ev-block.eval     { background: rgba(132,142,143,0.16); border-left: 2.5px solid #848E8F; }
+.ev-block.reunion  { background: rgba(162,161,161,0.14); border-left: 2.5px solid #A2A1A1; }
+.ev-block.clase    { background: rgba(162,161,161,0.14); border-left: 2.5px solid #A2A1A1; }
+.ev-block.blocked  { background: rgba(80,80,80,0.18);   border-left: 2.5px solid #606060; }
+.ev-block.nutricion { background: rgba(138,138,122,0.15); border-left: 2.5px solid #8a8a7a; }
 
 .ev-title {
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 500;
   color: var(--white);
   white-space: nowrap;
@@ -350,37 +375,36 @@ body::before {
 
 .ev-time {
   font-family: 'DM Mono', monospace;
-  font-size: 8px;
-  color: var(--muted);
+  font-size: 9px;
+  color: rgba(255,255,255,0.45);
   margin-top: 1px;
   line-height: 1;
 }
 
-/* ── Current time line ───────────────────────────────────────────── */
+/* ── Now line ────────────────────────────────────────────────────── */
 .now-line {
   position: absolute;
   left: 0; right: 0;
-  height: 2px;
-  background: var(--sage);
+  height: 1.5px;
+  background: var(--white);
   z-index: 5;
   pointer-events: none;
-  border-radius: 1px;
 }
 
 .now-line::before {
   content: '';
   position: absolute;
   left: -3px; top: -3px;
-  width: 8px; height: 8px;
-  background: var(--sage);
+  width: 7px; height: 7px;
+  background: var(--white);
   border-radius: 50%;
 }
 
-/* ── Loading spinner ─────────────────────────────────────────────── */
+/* ── Loading ─────────────────────────────────────────────────────── */
 .spinner {
-  width: 22px; height: 22px;
-  border: 2px solid var(--border2);
-  border-top-color: var(--sage);
+  width: 20px; height: 20px;
+  border: 1.5px solid var(--border2);
+  border-top-color: var(--steel);
   border-radius: 50%;
   animation: spin 0.7s linear infinite;
   margin: 40px auto;
@@ -396,25 +420,29 @@ body::before {
 .fab {
   position: fixed;
   bottom: calc(24px + var(--safe-bottom));
-  right: 20px;
-  width: 56px; height: 56px;
-  background: var(--sage);
-  border-radius: 18px;
+  right: 16px;
+  height: 50px;
+  padding: 0 22px;
+  background: var(--white);
+  border-radius: 25px;
   display: flex; align-items: center; justify-content: center;
-  font-size: 28px;
-  color: #080808;
+  gap: 8px;
+  font-family: 'Jost', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: #000;
   cursor: pointer;
-  box-shadow: 0 8px 32px rgba(143,168,136,0.4), 0 2px 8px rgba(0,0,0,0.4);
-  transition: transform 0.15s, box-shadow 0.15s;
+  box-shadow: 0 4px 24px rgba(255,255,255,0.1), 0 2px 8px rgba(0,0,0,0.5);
+  transition: transform 0.15s, opacity 0.15s;
   z-index: 50;
-  font-weight: 300;
-  line-height: 1;
   user-select: none;
+  text-transform: uppercase;
 }
 
 .fab:active {
-  transform: scale(0.92);
-  box-shadow: 0 4px 16px rgba(143,168,136,0.25);
+  transform: scale(0.95);
+  opacity: 0.88;
 }
 
 /* ════════════════════════════════════════════════════════════════════
@@ -497,7 +525,7 @@ body::before {
   appearance: none;
 }
 
-.form-input:focus { border-color: var(--sage); }
+.form-input:focus { border-color: var(--steel); }
 
 /* date/time inputs — fix iOS dark mode */
 .form-input[type="date"],
@@ -505,32 +533,37 @@ body::before {
   color-scheme: dark;
 }
 
+select.form-input {
+  color-scheme: dark;
+  cursor: pointer;
+}
+
 .type-row {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 7px;
 }
 
 .type-chip {
   padding: 10px 4px;
-  border-radius: 10px;
+  border-radius: 8px;
   border: 1px solid var(--border);
   background: var(--surface);
   text-align: center;
   font-size: 10px;
-  font-weight: 500;
-  letter-spacing: 0.04em;
+  font-weight: 600;
+  letter-spacing: 0.06em;
   color: var(--muted);
   cursor: pointer;
   transition: all 0.12s;
   user-select: none;
+  text-transform: uppercase;
 }
 
 .type-chip:active { opacity: 0.75; }
-.type-chip.selected-eval    { border-color: var(--eval);    color: var(--eval);    background: var(--eval-bg); }
-.type-chip.selected-clase   { border-color: var(--clase);   color: var(--clase);   background: var(--clase-bg); }
-.type-chip.selected-blocked { border-color: var(--blocked); color: var(--blocked); background: var(--blocked-bg); }
-.type-chip.selected-nutri   { border-color: var(--nutri);   color: var(--nutri);   background: var(--nutri-bg); }
+.type-chip.selected-eval    { border-color: #848E8F; color: #848E8F; background: rgba(132,142,143,0.14); }
+.type-chip.selected-nutri   { border-color: #8a8a7a; color: #aaaa96; background: rgba(138,138,122,0.15); }
+.type-chip.selected-reunion { border-color: #A2A1A1; color: #A2A1A1; background: rgba(162,161,161,0.12); }
 
 .time-row {
   display: grid;
@@ -541,18 +574,18 @@ body::before {
 .submit-btn {
   width: 100%;
   padding: 16px;
-  background: var(--sage);
+  background: var(--white);
   border: none;
-  border-radius: 14px;
-  color: #080808;
+  border-radius: 12px;
+  color: #000;
   font-family: 'Jost', sans-serif;
-  font-size: 15px;
-  font-weight: 600;
-  letter-spacing: 0.05em;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
   cursor: pointer;
-  margin-top: 8px;
   transition: opacity 0.15s, transform 0.12s;
   -webkit-appearance: none;
+  text-transform: uppercase;
 }
 
 .submit-btn:active { opacity: 0.82; transform: scale(0.98); }
@@ -605,9 +638,51 @@ body::before {
   min-height: 20px;
 }
 
+/* ── Time blocks picker ──────────────────────────────────────────── */
+.time-blocks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.time-block {
+  padding: 7px 11px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  font-family: 'DM Mono', monospace;
+  font-size: 12px;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 0.12s;
+  user-select: none;
+}
+
+.time-block:active { opacity: 0.7; }
+.time-block.selected { border-color: var(--steel); color: var(--white); background: var(--steel-dim); }
+.time-block.custom-btn { color: var(--steel); border-color: var(--steel-dim); font-family: 'Jost', sans-serif; font-size: 11px; letter-spacing: 0.05em; }
+
+/* ── Edit button ─────────────────────────────────────────────────── */
+.edit-btn {
+  flex: 1;
+  padding: 14px;
+  background: var(--surface);
+  border: 1px solid var(--steel-dim);
+  border-radius: 14px;
+  color: var(--steel-light);
+  font-family: 'Jost', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: opacity 0.15s;
+  -webkit-appearance: none;
+}
+
+.edit-btn:active { opacity: 0.7; }
+
 .detail-actions {
   display: flex;
-  gap: 10px;
+  gap: 8px;
 }
 
 .close-btn {
@@ -705,19 +780,25 @@ body::before {
   <div class="topbar">
     <div class="topbar-row1">
       <div class="brand">
-        <div class="brand-name">Box ONNE</div>
+        <div class="brand-name">ONNE</div>
         <div class="brand-title" id="weekRangeTitle">Semana</div>
       </div>
-      <div style="display:flex;align-items:center;gap:6px;">
-        <div class="today-btn" onclick="goToday()">Hoy</div>
-        <div class="nav-btn" onclick="changeWeek(-1)">‹</div>
-        <div class="nav-btn" onclick="changeWeek(1)">›</div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;">
+        <div class="clock-block">
+          <div class="clock-time" id="liveClock">--:--</div>
+          <div class="clock-date" id="liveDate">---</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:5px;">
+          <div class="today-btn" onclick="goToday()">Hoy</div>
+          <div class="nav-btn" onclick="changeWeek(-1)">‹</div>
+          <div class="nav-btn" onclick="changeWeek(1)">›</div>
+        </div>
       </div>
     </div>
 
     <!-- Day headers -->
     <div class="week-days-header" id="weekHeader">
-      <div></div><!-- spacer for time col -->
+      <div></div>
     </div>
   </div>
 
@@ -729,14 +810,14 @@ body::before {
   </div>
 
   <!-- FAB -->
-  <div class="fab" id="fabBtn">+</div>
+  <div class="fab" id="fabBtn"><span style="font-size:18px;font-weight:200;line-height:1">+</span> Nuevo</div>
 </div>
 
 <!-- ════════ MODAL: New Event ════════ -->
 <div class="modal-overlay" id="newEventModal">
   <div class="modal-sheet">
     <div class="modal-handle"></div>
-    <div class="modal-title">Nuevo evento</div>
+    <div class="modal-title" id="newEventTitle">Nuevo evento</div>
 
     <div class="form-group">
       <label class="form-label">Título</label>
@@ -747,9 +828,8 @@ body::before {
       <label class="form-label">Tipo</label>
       <div class="type-row">
         <div class="type-chip" data-type="eval" onclick="selectType(this)">Evaluación</div>
-        <div class="type-chip" data-type="clase" onclick="selectType(this)">Clase / Box</div>
-        <div class="type-chip" data-type="blocked" onclick="selectType(this)">Bloqueado</div>
         <div class="type-chip" data-type="nutri" onclick="selectType(this)">Nutrición</div>
+        <div class="type-chip" data-type="reunion" onclick="selectType(this)">Reunión</div>
       </div>
     </div>
 
@@ -759,11 +839,15 @@ body::before {
     </div>
 
     <div class="form-group">
-      <label class="form-label">Horario</label>
-      <div class="time-row">
-        <input class="form-input" id="evStart" type="time" value="09:00" />
-        <input class="form-input" id="evEnd" type="time" value="10:00" />
-      </div>
+      <label class="form-label">Inicio</label>
+      <div class="time-blocks" id="startBlocks"></div>
+      <input class="form-input" id="evStart" type="time" style="display:none;margin-top:6px" />
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Duración</label>
+      <div class="time-blocks" id="durBlocks"></div>
+      <input class="form-input" id="evEnd" type="time" style="display:none;margin-top:6px" />
     </div>
 
     <div class="form-group">
@@ -771,7 +855,10 @@ body::before {
       <input class="form-input" id="evDesc" placeholder="Profesor, número de socios…" />
     </div>
 
-    <button class="submit-btn" id="submitBtn" onclick="submitEvent()">Guardar en calendario</button>
+    <div style="display:flex;gap:10px;margin-top:8px;">
+      <button class="close-btn" onclick="document.getElementById('newEventModal').classList.remove('open')">Cancelar</button>
+      <button class="submit-btn" id="submitBtn" onclick="submitEvent()" style="margin-top:0;flex:2">Guardar</button>
+    </div>
   </div>
 </div>
 
@@ -788,6 +875,7 @@ body::before {
     <div class="detail-desc" id="detailDesc"></div>
     <div class="detail-actions">
       <button class="close-btn" onclick="document.getElementById('detailModal').classList.remove('open')">Cerrar</button>
+      <button class="edit-btn" id="editBtn" onclick="editEvent()">Editar</button>
       <button class="delete-btn" id="deleteBtn" onclick="deleteEvent()" style="display:none">Eliminar</button>
     </div>
   </div>
@@ -809,8 +897,37 @@ const DAYS_FULL  = ['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','
 const MONTHS     = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
 const HOURS      = [6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21];
 
-const TYPE_COLORS = { eval:'var(--eval)', clase:'var(--clase)', blocked:'var(--blocked)', nutricion:'var(--nutri)', nutri:'var(--nutri)' };
-const TYPE_BG     = { eval:'var(--eval-bg)', clase:'var(--clase-bg)', blocked:'var(--blocked-bg)', nutricion:'var(--nutri-bg)', nutri:'var(--nutri-bg)' };
+const TYPE_COLORS = {
+  eval:     '#848E8F',
+  nutri:    '#8a8a7a',
+  nutricion:'#8a8a7a',
+  reunion:  '#A2A1A1',
+  clase:    '#A2A1A1',
+  blocked:  '#606060'
+};
+const TYPE_BG = {
+  eval:     'rgba(132,142,143,0.14)',
+  nutri:    'rgba(138,138,122,0.15)',
+  nutricion:'rgba(138,138,122,0.15)',
+  reunion:  'rgba(162,161,161,0.12)',
+  clase:    'rgba(162,161,161,0.12)',
+  blocked:  'rgba(80,80,80,0.18)'
+};
+
+// ── Live clock ───────────────────────────────────────────────────────
+const DAYS_ABBR = ['DOM','LUN','MAR','MIÉ','JUE','VIE','SÁB'];
+const MONTHS_ABBR = ['ENE','FEB','MAR','ABR','MAY','JUN','JUL','AGO','SEP','OCT','NOV','DIC'];
+
+function updateClock() {
+  const now = new Date();
+  const hh = String(now.getHours()).padStart(2,'0');
+  const mm = String(now.getMinutes()).padStart(2,'0');
+  document.getElementById('liveClock').textContent = `${hh}:${mm}`;
+  document.getElementById('liveDate').textContent =
+    `${DAYS_ABBR[now.getDay()]} ${now.getDate()} ${MONTHS_ABBR[now.getMonth()]}`;
+}
+updateClock();
+setInterval(updateClock, 10000);
 
 // ════════════════════════════════════════════════════════════════════
 // SWIPE TO CHANGE WEEK
@@ -897,15 +1014,6 @@ async function createEvent(payload) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
     });
-    return await r.json();
-  } catch (e) {
-    return { error: e.message };
-  }
-}
-
-async function deleteEventAPI(id) {
-  try {
-    const r = await fetch(`/api/calendar?id=${id}`, { method: 'DELETE' });
     return await r.json();
   } catch (e) {
     return { error: e.message };
@@ -1149,6 +1257,94 @@ function goToday() {
 // ════════════════════════════════════════════════════════════════════
 // NEW EVENT MODAL
 // ════════════════════════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════════════════
+// TIME BLOCKS PICKER
+// ════════════════════════════════════════════════════════════════════
+const START_SLOTS = ['07:00','07:30','08:00','08:30','09:00','09:30','10:00','10:30','11:00','11:30','12:00','12:30','13:00','13:30','14:00','14:30','15:00','15:30','16:00','16:30','17:00','17:30','18:00','18:30','19:00','19:30','20:00'];
+const DUR_SLOTS   = [{ label:'15 min', mins:15 }, { label:'30 min', mins:30 }, { label:'45 min', mins:45 }, { label:'1 hora', mins:60 }, { label:'1:30', mins:90 }, { label:'2 horas', mins:120 }];
+
+let selStart = null;
+let selDurMins = null;
+let editingEventId = null;
+
+function renderStartBlocks(selected) {
+  const wrap = document.getElementById('startBlocks');
+  wrap.innerHTML = '';
+  // Show slots around selected or current hour
+  const showSlots = START_SLOTS;
+  showSlots.forEach(t => {
+    const b = document.createElement('div');
+    b.className = 'time-block' + (t === selected ? ' selected' : '');
+    b.textContent = t;
+    b.onclick = () => {
+      selStart = t;
+      document.getElementById('evStart').value = t;
+      renderStartBlocks(t);
+      // hide custom input
+      document.getElementById('evStart').style.display = 'none';
+    };
+    wrap.appendChild(b);
+  });
+  // Custom button
+  const custom = document.createElement('div');
+  custom.className = 'time-block custom-btn';
+  custom.textContent = 'Otra hora';
+  custom.onclick = () => {
+    const inp = document.getElementById('evStart');
+    inp.style.display = inp.style.display === 'none' ? 'block' : 'none';
+    if (inp.style.display !== 'none') inp.focus();
+  };
+  wrap.appendChild(custom);
+}
+
+function renderDurBlocks(selectedMins) {
+  const wrap = document.getElementById('durBlocks');
+  wrap.innerHTML = '';
+  DUR_SLOTS.forEach(d => {
+    const b = document.createElement('div');
+    b.className = 'time-block' + (d.mins === selectedMins ? ' selected' : '');
+    b.textContent = d.label;
+    b.onclick = () => {
+      selDurMins = d.mins;
+      // compute end from start
+      updateEndFromDur();
+      renderDurBlocks(d.mins);
+    };
+    wrap.appendChild(b);
+  });
+  const custom = document.createElement('div');
+  custom.className = 'time-block custom-btn';
+  custom.textContent = 'Otra hora fin';
+  custom.onclick = () => {
+    const inp = document.getElementById('evEnd');
+    inp.style.display = inp.style.display === 'none' ? 'block' : 'none';
+    if (inp.style.display !== 'none') inp.focus();
+  };
+  wrap.appendChild(custom);
+}
+
+function updateEndFromDur() {
+  const start = document.getElementById('evStart').value || selStart;
+  if (!start || !selDurMins) return;
+  const [h, m] = start.split(':').map(Number);
+  const total = h * 60 + m + selDurMins;
+  const eh = String(Math.floor(total / 60)).padStart(2,'0');
+  const em = String(total % 60).padStart(2,'0');
+  document.getElementById('evEnd').value = `${eh}:${em}`;
+}
+
+// Also sync custom start input
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('evStart').addEventListener('change', function() {
+    selStart = this.value;
+    renderStartBlocks(this.value);
+    updateEndFromDur();
+  });
+});
+
+// ════════════════════════════════════════════════════════════════════
+// NEW EVENT MODAL
+// ════════════════════════════════════════════════════════════════════
 document.getElementById('fabBtn').onclick = () => {
   const now = new Date();
   const m = now.getMinutes() >= 30 ? 30 : 0;
@@ -1156,15 +1352,25 @@ document.getElementById('fabBtn').onclick = () => {
 };
 
 function openNewModal(date, hour, mins = 0) {
-  const modal = document.getElementById('newEventModal');
-  modal.classList.add('open');
+  editingEventId = null;
+  document.getElementById('newEventModal').classList.add('open');
+  document.getElementById('newEventTitle').textContent = 'Nuevo evento';
+  document.getElementById('submitBtn').textContent = 'Guardar';
   document.getElementById('evDate').value = isoDate(date);
+
   const hh = String(hour).padStart(2,'0');
-  const mm = String(mins).padStart(2,'0');
-  const endH = mins >= 30 ? String(hour + 1).padStart(2,'0') : hh;
-  const endM = mins >= 30 ? '00' : '30';
-  document.getElementById('evStart').value = `${hh}:${mm}`;
-  document.getElementById('evEnd').value   = `${endH}:${endM}`;
+  const mm = mins >= 30 ? '30' : '00';
+  selStart = `${hh}:${mm}`;
+  selDurMins = 60;
+
+  document.getElementById('evStart').value = selStart;
+  document.getElementById('evStart').style.display = 'none';
+  updateEndFromDur();
+  document.getElementById('evEnd').style.display = 'none';
+
+  renderStartBlocks(selStart);
+  renderDurBlocks(selDurMins);
+
   document.getElementById('evTitle').value = '';
   document.getElementById('evDesc').value  = '';
   selType = null;
@@ -1199,18 +1405,23 @@ async function submitEvent() {
     start: `${date}T${start}:00`,
     end:   `${date}T${end}:00`,
     description: desc,
-    colorId: selType === 'blocked' ? '11' : selType === 'eval' ? '2' : selType === 'nutri' ? '5' : '7',
+    colorId: selType === 'eval' ? '2' : selType === 'nutri' ? '5' : selType === 'reunion' ? '7' : '1',
   };
 
-  const res = await createEvent(payload);
+  let res;
+  if (editingEventId) {
+    res = await updateEventAPI(editingEventId, payload);
+  } else {
+    res = await createEvent(payload);
+  }
 
   btn.disabled = false;
-  btn.textContent = 'Guardar en calendario';
+  btn.textContent = 'Guardar';
 
   if (res.error) {
-    showToast('Error al guardar — modo demo activo');
+    showToast('Error al guardar');
   } else {
-    showToast('✓ Evento guardado');
+    showToast(editingEventId ? '✓ Evento actualizado' : '✓ Evento guardado');
   }
 
   document.getElementById('newEventModal').classList.remove('open');
@@ -1222,24 +1433,27 @@ async function submitEvent() {
 // ════════════════════════════════════════════════════════════════════
 function openDetail(ev) {
   selEvent = ev;
-  const s = new Date(ev.start);
+  const s  = new Date(ev.start);
   const e2 = new Date(ev.end);
   const timeStr = `${DAYS_FULL[(s.getDay()+6)%7]}, ${s.getDate()} de ${MONTHS[s.getMonth()]}  ·  ${s.getHours()}:${String(s.getMinutes()).padStart(2,'0')} – ${e2.getHours()}:${String(e2.getMinutes()).padStart(2,'0')}`;
 
-  const color = TYPE_COLORS[ev.type] || 'var(--sage)';
-  const typeLabels = { eval:'Evaluación', clase:'Clase / Box', blocked:'Bloqueado', nutricion:'Nutrición', nutri:'Nutrición' };
+  const color = TYPE_COLORS[ev.type] || '#848E8F';
+  const typeLabels = { eval:'Evaluación', reunion:'Reunión', nutricion:'Nutrición', nutri:'Nutrición', clase:'Clase', blocked:'Bloqueado' };
 
   const pill = document.getElementById('detailTypePill');
-  pill.style.background = (TYPE_BG[ev.type] || 'var(--eval-bg)');
+  pill.style.background = TYPE_BG[ev.type] || 'rgba(132,142,143,0.14)';
   pill.style.color = color;
   document.getElementById('detailTypeDot').style.background = color;
-  document.getElementById('detailTypeLabel').textContent = typeLabels[ev.type] || ev.type || 'Evento';
+  document.getElementById('detailTypeLabel').textContent = typeLabels[ev.type] || 'Evento';
 
   document.getElementById('detailName').textContent = ev.title;
   document.getElementById('detailTime').textContent = timeStr;
   document.getElementById('detailDesc').textContent = ev.desc || '';
 
-  document.getElementById('deleteBtn').style.display = role === 'admin' ? 'block' : 'none';
+  // Eliminar solo para eventos de nutrición (Zelena)
+  const isNutri = ev.type === 'nutri' || ev.type === 'nutricion';
+  document.getElementById('deleteBtn').style.display = isNutri ? 'block' : 'none';
+
   document.getElementById('detailModal').classList.add('open');
 }
 
@@ -1247,10 +1461,49 @@ document.getElementById('detailModal').addEventListener('click', function(e) {
   if (e.target === this) this.classList.remove('open');
 });
 
+function editEvent() {
+  if (!selEvent) return;
+  document.getElementById('detailModal').classList.remove('open');
+
+  const s  = new Date(selEvent.start);
+  const e2 = new Date(selEvent.end);
+
+  editingEventId = selEvent.id;
+  document.getElementById('newEventModal').classList.add('open');
+  document.getElementById('newEventTitle').textContent = 'Editar evento';
+  document.getElementById('submitBtn').textContent = 'Actualizar';
+
+  document.getElementById('evDate').value  = isoDate(s);
+  document.getElementById('evTitle').value = selEvent.title;
+  document.getElementById('evDesc').value  = selEvent.desc || '';
+
+  const startStr = `${String(s.getHours()).padStart(2,'0')}:${String(s.getMinutes()).padStart(2,'0')}`;
+  const endStr   = `${String(e2.getHours()).padStart(2,'0')}:${String(e2.getMinutes()).padStart(2,'0')}`;
+  selStart = startStr;
+  selDurMins = (e2 - s) / 60000;
+
+  document.getElementById('evStart').value = startStr;
+  document.getElementById('evStart').style.display = 'none';
+  document.getElementById('evEnd').value   = endStr;
+  document.getElementById('evEnd').style.display = 'none';
+
+  renderStartBlocks(startStr);
+  renderDurBlocks(selDurMins);
+
+  // Set type chip
+  selType = selEvent.type === 'nutricion' ? 'nutri' : (selEvent.type || null);
+  document.querySelectorAll('.type-chip').forEach(c => {
+    c.className = 'type-chip';
+    if (c.dataset.type === selType) c.classList.add(`selected-${selType}`);
+  });
+}
+
 async function deleteEvent() {
-  if (!selEvent || role !== 'admin') return;
+  if (!selEvent) return;
+  const isNutri = selEvent.type === 'nutri' || selEvent.type === 'nutricion';
+  if (!isNutri) return;
   if (selEvent.id.startsWith('demo-')) {
-    showToast('Modo demo — conecta Google Calendar');
+    showToast('Modo demo — no se puede eliminar');
     document.getElementById('detailModal').classList.remove('open');
     return;
   }
@@ -1259,6 +1512,28 @@ async function deleteEvent() {
   if (res.error) { showToast('Error al eliminar'); return; }
   showToast('Evento eliminado');
   buildWeek();
+}
+
+async function updateEventAPI(id, payload) {
+  try {
+    const r = await fetch(`/api/calendar?id=${encodeURIComponent(id)}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    return await r.json();
+  } catch (e) {
+    return { error: e.message };
+  }
+}
+
+async function deleteEventAPI(id) {
+  try {
+    const r = await fetch(`/api/calendar?id=${encodeURIComponent(id)}`, { method: 'DELETE' });
+    return await r.json();
+  } catch (e) {
+    return { error: e.message };
+  }
 }
 
 // ════════════════════════════════════════════════════════════════════
@@ -1277,7 +1552,6 @@ function showToast(msg) {
 // INIT
 // ════════════════════════════════════════════════════════════════════
 buildWeek();
-// Refresh now-line every minute
 setInterval(renderNowLine, 60000);
 </script>
 </body>
