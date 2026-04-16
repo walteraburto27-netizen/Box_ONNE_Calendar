@@ -234,17 +234,23 @@ body::before {
   -webkit-overflow-scrolling: touch;
   overscroll-behavior-y: contain;
   padding-bottom: calc(88px + var(--safe-bottom));
-  /* hide scrollbar but allow scroll */
   scrollbar-width: none;
 }
 
 .timeline-wrap::-webkit-scrollbar { display: none; }
 
+/* Outer row: time labels + day columns side by side */
 .timeline-grid {
-  display: grid;
-  grid-template-columns: var(--time-col) repeat(7, 1fr);
-  gap: 2px;
-  padding: 0 8px 0 8px;
+  display: flex;
+  flex-direction: row;
+  padding: 0 4px 0 0;
+}
+
+/* Left time column */
+.time-col {
+  flex-shrink: 0;
+  width: var(--time-col);
+  position: relative;
 }
 
 .time-label {
@@ -256,23 +262,99 @@ body::before {
   padding-top: 3px;
   line-height: 1;
   user-select: none;
+  height: var(--hour-h);
+  box-sizing: border-box;
 }
 
-.hour-cell {
-  min-height: var(--hour-h);
-  border-top: 1px solid var(--border);
+/* Day column strip */
+.day-cols {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+  min-width: 0;
+}
+
+.day-col {
   position: relative;
   cursor: pointer;
-  transition: background 0.1s;
+  /* total height = number of hours × hour height */
 }
 
-/* Today column subtle tint */
-.hour-cell.today-hour {
-  background: rgba(143,168,136,0.025);
-  border-top-color: rgba(143,168,136,0.18);
+.day-col.today-col-bg {
+  background: rgba(143,168,136,0.03);
 }
 
-.hour-cell:active { background: var(--surface); }
+/* Hour separator lines drawn as pseudo stripes */
+.hour-line {
+  position: absolute;
+  left: 0; right: 0;
+  height: 1px;
+  background: var(--border);
+  pointer-events: none;
+}
+
+.hour-line.today-line {
+  background: rgba(143,168,136,0.18);
+}
+
+/* Half-hour line */
+.half-line {
+  position: absolute;
+  left: 0; right: 0;
+  height: 1px;
+  background: var(--border);
+  opacity: 0.35;
+  pointer-events: none;
+}
+
+/* ── Events inside day columns ───────────────────────────────────── */
+.ev-block {
+  position: absolute;
+  left: 2px; right: 2px;
+  border-radius: 6px;
+  padding: 3px 5px;
+  cursor: pointer;
+  overflow: hidden;
+  transition: transform 0.12s, filter 0.12s;
+  z-index: 2;
+  animation: evIn 0.22s ease forwards;
+  opacity: 0;
+  min-height: 20px;
+}
+
+@keyframes evIn {
+  from { opacity: 0; transform: translateY(3px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.ev-block:active {
+  transform: scale(0.96);
+  filter: brightness(1.15);
+}
+
+.ev-block.eval    { background: var(--eval-bg);    border-left: 2.5px solid var(--eval); }
+.ev-block.clase   { background: var(--clase-bg);   border-left: 2.5px solid var(--clase); }
+.ev-block.blocked { background: var(--blocked-bg); border-left: 2.5px solid var(--blocked); }
+.ev-block.nutricion { background: var(--nutri-bg); border-left: 2.5px solid var(--nutri); }
+
+.ev-title {
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--white);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.3;
+}
+
+.ev-time {
+  font-family: 'DM Mono', monospace;
+  font-size: 8px;
+  color: var(--muted);
+  margin-top: 1px;
+  line-height: 1;
+}
 
 /* ── Current time line ───────────────────────────────────────────── */
 .now-line {
@@ -294,55 +376,23 @@ body::before {
   border-radius: 50%;
 }
 
-/* ── Events inside cells ─────────────────────────────────────────── */
-.ev-block {
-  position: absolute;
-  left: 2px; right: 2px;
-  top: 2px;
-  border-radius: 6px;
-  padding: 4px 6px;
-  cursor: pointer;
-  overflow: hidden;
-  transition: transform 0.12s, filter 0.12s;
-  z-index: 2;
-  animation: evIn 0.22s ease forwards;
-  opacity: 0;
+/* ── Loading spinner ─────────────────────────────────────────────── */
+.spinner {
+  width: 22px; height: 22px;
+  border: 2px solid var(--border2);
+  border-top-color: var(--sage);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  margin: 40px auto;
 }
 
-@keyframes evIn {
-  from { opacity: 0; transform: translateY(4px) scale(0.97); }
-  to   { opacity: 1; transform: translateY(0) scale(1); }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.loading-wrap {
+  width: 100%;
+  display: flex; align-items: center; justify-content: center;
+  padding: 48px;
 }
-
-.ev-block:active {
-  transform: scale(0.96);
-  filter: brightness(1.15);
-}
-
-.ev-block.eval    { background: var(--eval-bg);    border-left: 2.5px solid var(--eval); }
-.ev-block.clase   { background: var(--clase-bg);   border-left: 2.5px solid var(--clase); }
-.ev-block.blocked { background: var(--blocked-bg); border-left: 2.5px solid var(--blocked); }
-.ev-block.nutricion { background: var(--nutri-bg); border-left: 2.5px solid var(--nutri); }
-
-.ev-title {
-  font-size: 11px;
-  font-weight: 500;
-  color: var(--white);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  line-height: 1.3;
-}
-
-.ev-time {
-  font-family: 'DM Mono', monospace;
-  font-size: 9px;
-  color: var(--muted);
-  margin-top: 1px;
-  line-height: 1;
-}
-
-/* ── FAB ──────────────────────────────────────────────────────────── */
 .fab {
   position: fixed;
   bottom: calc(24px + var(--safe-bottom));
@@ -904,6 +954,10 @@ function buildDemoEvents(dates) {
 // ════════════════════════════════════════════════════════════════════
 // BUILD WEEK VIEW
 // ════════════════════════════════════════════════════════════════════
+const HOUR_H   = 56;   // px per hour
+const FIRST_H  = HOURS[0];
+const TOTAL_H  = HOURS.length * HOUR_H;
+
 async function buildWeek() {
   const dates = getWeekDates(weekOff);
   const mon = dates[0], sun = dates[6];
@@ -934,14 +988,13 @@ async function buildWeek() {
 
   // Loading
   const grid = document.getElementById('timelineGrid');
-  grid.innerHTML = '<div class="loading-row"><div class="spinner"></div></div>';
+  grid.innerHTML = '<div class="loading-wrap"><div class="spinner"></div></div>';
 
   // Fetch
   const startISO = dates[0].toISOString();
   const endISO = (() => { const e = new Date(dates[6]); e.setHours(23,59,59); return e.toISOString(); })();
   events = await fetchEvents(startISO, endISO);
 
-  // If no events from API, use demo
   if (!events || events.length === 0) {
     events = buildDemoEvents(dates);
   }
@@ -955,85 +1008,118 @@ async function buildWeek() {
     dots.innerHTML = types.map(t => `<div class="wdot" style="background:${TYPE_COLORS[t]||'var(--sage)'}"></div>`).join('');
   });
 
-  // Build grid
+  // ── Build new layout: time-col + day-cols ──────────────────────
   grid.innerHTML = '';
+
+  // 1. Time labels column
+  const timeCol = document.createElement('div');
+  timeCol.className = 'time-col';
   HOURS.forEach(h => {
-    // Time label
-    const tl = document.createElement('div');
-    tl.className = 'time-label';
-    tl.textContent = `${h}:00`;
-    grid.appendChild(tl);
-
-    // 7 day cells
-    dates.forEach((d, di) => {
-      const cell = document.createElement('div');
-      cell.className = 'hour-cell' + (isToday(d) ? ' today-hour' : '');
-      cell.style.borderTopColor = isToday(d) ? 'rgba(143,168,136,0.2)' : '';
-      cell.onclick = () => openNewModal(d, h);
-
-      // Place events starting this hour
-      const hourEvs = events.filter(ev => {
-        const s = new Date(ev.start);
-        return isoDate(s) === isoDate(d) && s.getHours() === h;
-      });
-
-      hourEvs.forEach(ev => {
-        const s = new Date(ev.start);
-        const e2 = new Date(ev.end);
-        const durMin = (e2 - s) / 60000;
-        const heightPx = Math.max(36, (durMin / 60) * 56 - 4);
-        const block = document.createElement('div');
-        block.className = `ev-block ${ev.type || 'clase'}`;
-        block.style.height = heightPx + 'px';
-        block.style.animationDelay = (di * 0.04) + 's';
-        const hStr = `${s.getHours()}:${String(s.getMinutes()).padStart(2,'0')}`;
-        block.innerHTML = `<div class="ev-title">${ev.title}</div><div class="ev-time">${hStr}</div>`;
-        block.onclick = (e) => { e.stopPropagation(); openDetail(ev); };
-        cell.appendChild(block);
-      });
-
-      grid.appendChild(cell);
-    });
+    const lbl = document.createElement('div');
+    lbl.className = 'time-label';
+    lbl.textContent = `${h}:00`;
+    timeCol.appendChild(lbl);
   });
+  grid.appendChild(timeCol);
+
+  // 2. Day columns container
+  const dayCols = document.createElement('div');
+  dayCols.className = 'day-cols';
+
+  dates.forEach((d, di) => {
+    const col = document.createElement('div');
+    col.className = 'day-col' + (isToday(d) ? ' today-col-bg' : '');
+    col.style.height = TOTAL_H + 'px';
+
+    // Hour lines + half-hour lines
+    HOURS.forEach((h, hi) => {
+      const isT = isToday(d);
+      // full hour line
+      const line = document.createElement('div');
+      line.className = 'hour-line' + (isT ? ' today-line' : '');
+      line.style.top = (hi * HOUR_H) + 'px';
+      col.appendChild(line);
+      // half-hour line
+      const half = document.createElement('div');
+      half.className = 'half-line';
+      half.style.top = (hi * HOUR_H + HOUR_H / 2) + 'px';
+      col.appendChild(half);
+    });
+
+    // Click on col to open new event (use y position to calculate hour)
+    col.addEventListener('click', (e) => {
+      if (e.target !== col) return; // only if clicking empty space
+      const rect = col.getBoundingClientRect();
+      const y = e.clientY - rect.top;
+      const totalMins = (y / HOUR_H) * 60 + FIRST_H * 60;
+      const h = Math.floor(totalMins / 60);
+      const m = Math.round((totalMins % 60) / 30) * 30; // snap to 30min
+      openNewModal(d, h, m);
+    });
+
+    // Events for this day
+    const dayEvs = eventsForDay(d);
+    dayEvs.forEach((ev, ei) => {
+      const s = new Date(ev.start);
+      const e2 = new Date(ev.end);
+      const startMins = s.getHours() * 60 + s.getMinutes();
+      const endMins   = e2.getHours() * 60 + e2.getMinutes();
+      const durMins   = endMins - startMins;
+
+      const topPx    = (startMins - FIRST_H * 60) / 60 * HOUR_H;
+      const heightPx = Math.max(22, durMins / 60 * HOUR_H - 2);
+
+      const block = document.createElement('div');
+      block.className = `ev-block ${ev.type || 'clase'}`;
+      block.style.top    = topPx + 'px';
+      block.style.height = heightPx + 'px';
+      block.style.animationDelay = (di * 0.03 + ei * 0.02) + 's';
+
+      const hStr = `${s.getHours()}:${String(s.getMinutes()).padStart(2,'0')}`;
+      // Only show time if block is tall enough
+      block.innerHTML = heightPx >= 32
+        ? `<div class="ev-title">${ev.title}</div><div class="ev-time">${hStr}</div>`
+        : `<div class="ev-title">${ev.title}</div>`;
+
+      block.onclick = (e) => { e.stopPropagation(); openDetail(ev); };
+      col.appendChild(block);
+    });
+
+    dayCols.appendChild(col);
+  });
+
+  grid.appendChild(dayCols);
 
   // Scroll to 8am
   setTimeout(() => {
     scrollToHour(8);
     renderNowLine();
-  }, 100);
+  }, 80);
 }
 
 function renderNowLine() {
-  // Remove existing
   document.querySelectorAll('.now-line').forEach(el => el.remove());
 
-  const now = new Date();
   const todayDates = getWeekDates(weekOff);
   const todayIdx = todayDates.findIndex(d => isToday(d));
   if (todayIdx < 0) return;
 
+  const now = new Date();
   const h = now.getHours();
   const m = now.getMinutes();
   if (h < HOURS[0] || h > HOURS[HOURS.length - 1]) return;
 
-  const hourIdx = HOURS.indexOf(h);
-  if (hourIdx < 0) return;
+  const topPx = (h * 60 + m - FIRST_H * 60) / 60 * HOUR_H;
 
-  // Find the today cell for this hour
-  const grid = document.getElementById('timelineGrid');
-  // grid cells: each row = 1 time-label + 7 hour-cells = 8 cells per row
-  const rowStart = hourIdx * 8; // 0-indexed, but grid children include time labels
-  // Actually iterate: for each HOURS[i], we added 1 time-label + 7 cells = 8 children per row
-  const cellIndex = hourIdx * 8 + 1 + todayIdx; // +1 for time-label, +todayIdx for column
-  const targetCell = grid.children[cellIndex];
-  if (!targetCell) return;
+  const dayCols = document.querySelector('.day-cols');
+  if (!dayCols) return;
+  const col = dayCols.children[todayIdx];
+  if (!col) return;
 
-  const HOUR_H = 56;
-  const topPx = (m / 60) * HOUR_H;
   const line = document.createElement('div');
   line.className = 'now-line';
   line.style.top = topPx + 'px';
-  targetCell.appendChild(line);
+  col.appendChild(line);
 }
 
 function eventsForDay(d) {
@@ -1044,7 +1130,7 @@ function scrollToHour(h) {
   const wrap = document.getElementById('timelineWrap');
   const idx = HOURS.indexOf(h);
   if (idx < 0) return;
-  wrap.scrollTop = idx * 56;
+  wrap.scrollTop = idx * HOUR_H;
 }
 
 // ════════════════════════════════════════════════════════════════════
@@ -1063,14 +1149,22 @@ function goToday() {
 // ════════════════════════════════════════════════════════════════════
 // NEW EVENT MODAL
 // ════════════════════════════════════════════════════════════════════
-document.getElementById('fabBtn').onclick = () => openNewModal(new Date(), new Date().getHours());
+document.getElementById('fabBtn').onclick = () => {
+  const now = new Date();
+  const m = now.getMinutes() >= 30 ? 30 : 0;
+  openNewModal(now, now.getHours(), m);
+};
 
-function openNewModal(date, hour) {
+function openNewModal(date, hour, mins = 0) {
   const modal = document.getElementById('newEventModal');
   modal.classList.add('open');
   document.getElementById('evDate').value = isoDate(date);
-  document.getElementById('evStart').value = `${String(hour).padStart(2,'0')}:00`;
-  document.getElementById('evEnd').value   = `${String(hour+1).padStart(2,'0')}:00`;
+  const hh = String(hour).padStart(2,'0');
+  const mm = String(mins).padStart(2,'0');
+  const endH = mins >= 30 ? String(hour + 1).padStart(2,'0') : hh;
+  const endM = mins >= 30 ? '00' : '30';
+  document.getElementById('evStart').value = `${hh}:${mm}`;
+  document.getElementById('evEnd').value   = `${endH}:${endM}`;
   document.getElementById('evTitle').value = '';
   document.getElementById('evDesc').value  = '';
   selType = null;
