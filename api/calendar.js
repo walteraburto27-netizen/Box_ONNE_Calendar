@@ -93,6 +93,31 @@ export default async function handler(req, res) {
     return json(res, 201, { id: data.id, title: data.summary });
   }
 
+  // ── PUT /api/calendar?id=... — update event ──────────────────────────────
+  if (req.method === 'PUT') {
+    const { id } = req.query;
+    if (!id) return json(res, 400, { error: 'id requerido' });
+    const { title, start, end, description, colorId } = req.body;
+    if (!title || !start || !end) return json(res, 400, { error: 'title, start, end requeridos' });
+
+    const body = {
+      summary:     title,
+      description: description || '',
+      start:       { dateTime: start, timeZone: 'America/Santiago' },
+      end:         { dateTime: end,   timeZone: 'America/Santiago' },
+      colorId:     colorId || undefined,
+    };
+
+    const r = await fetch(`${GCAL_BASE}/calendars/${calendarId}/events/${id}`, {
+      method: 'PUT',
+      headers,
+      body: JSON.stringify(body),
+    });
+    const data = await r.json();
+    if (!r.ok) return json(res, r.status, data);
+    return json(res, 200, { id: data.id, title: data.summary });
+  }
+
   // ── DELETE /api/calendar?id=... ──────────────────────────────────────────
   if (req.method === 'DELETE') {
     const { id } = req.query;
@@ -113,8 +138,8 @@ export default async function handler(req, res) {
 // ── type detection from title ─────────────────────────────────────────────
 function detectType(title) {
   const t = title.toLowerCase();
-  if (t.includes('evaluación') || t.includes('evaluacion')) return 'eval';
-  if (t.includes('bloqueado') || t.includes('mantención') || t.includes('reservado')) return 'blocked';
+  if (t.includes('evaluación') || t.includes('evaluacion') || t.includes('eval')) return 'eval';
   if (t.includes('nutrición') || t.includes('nutricion') || t.includes('zelena')) return 'nutricion';
-  return 'clase';
+  if (t.includes('reunión') || t.includes('reunion') || t.includes('meeting')) return 'reunion';
+  return 'reunion'; // default para cualquier otro evento
 }
