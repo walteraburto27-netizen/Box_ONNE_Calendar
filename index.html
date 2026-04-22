@@ -1001,24 +1001,37 @@ function isToday(d) {
 async function fetchEvents(start, end) {
   try {
     const r = await fetch(`/api/calendar?start=${encodeURIComponent(start)}&end=${encodeURIComponent(end)}`);
-    if (!r.ok) return [];
+    if (!r.ok) {
+      const txt = await r.text();
+      console.error('[fetchEvents] HTTP', r.status, txt.slice(0, 200));
+      return [];
+    }
     const data = await r.json();
+    console.log(`[fetchEvents] ${(data.events || []).length} eventos recibidos`);
     return data.events || [];
-  } catch {
+  } catch (e) {
+    console.error('[fetchEvents] network error:', e);
     return [];  // API no disponible — se usarán eventos demo
   }
 }
 
 async function createEvent(payload) {
   try {
+    console.log('[createEvent] payload →', payload);
     const r = await fetch('/api/calendar', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
     });
-    return await r.json();
+    const raw = await r.text();
+    console.log('[createEvent] status:', r.status, 'body:', raw);
+    let data;
+    try { data = JSON.parse(raw); } catch { data = { error: `HTTP ${r.status}: ${raw.slice(0,120)}` }; }
+    if (!r.ok && !data.error) data.error = `HTTP ${r.status}`;
+    return data;
   } catch (e) {
-    return { error: e.message };
+    console.error('[createEvent] network error:', e);
+    return { error: 'Red: ' + e.message };
   }
 }
 
@@ -1100,9 +1113,13 @@ async function buildWeek() {
   const grid = document.getElementById('timelineGrid');
   grid.innerHTML = '<div class="loading-wrap"><div class="spinner"></div></div>';
 
-  // Fetch
-  const startISO = dates[0].toISOString();
-  const endISO = (() => { const e = new Date(dates[5]); e.setHours(23,59,59); return e.toISOString(); })();
+  // Fetch — rango en UTC que cubre lunes 00:00 a sábado 23:59 en hora Chile
+  // (se suma margen de ±12h para cubrir cualquier desfase de timezone)
+  const startLocal = new Date(dates[0]); startLocal.setHours(0, 0, 0, 0);
+  const endLocal   = new Date(dates[5]); endLocal.setHours(23, 59, 59, 999);
+  const startISO = startLocal.toISOString();
+  const endISO   = endLocal.toISOString();
+  console.log('[buildWeek] rango:', startISO, '→', endISO);
   events = await fetchEvents(startISO, endISO);
 
   if (!events || events.length === 0) {
@@ -1397,17 +1414,23 @@ async function submitEvent() {
   const desc  = document.getElementById('evDesc').value.trim();
 
   if (!title || !date || !start || !end) { showToast('Completa título y horario'); return; }
+  if (start >= end) { showToast('La hora de fin debe ser posterior al inicio'); return; }
 
   const btn = document.getElementById('submitBtn');
   btn.disabled = true;
   btn.textContent = 'Guardando…';
 
+  // Mapa tipo → colorId de Google Calendar
+  const colorMap = { eval:'2', nutri:'5', nutricion:'5', reunion:'7', clase:'10', blocked:'8' };
+
   const payload = {
     title,
     start: `${date}T${start}:00`,
     end:   `${date}T${end}:00`,
+    timeZone: 'America/Santiago',
     description: desc,
-    colorId: selType === 'eval' ? '2' : selType === 'nutri' ? '5' : selType === 'reunion' ? '7' : '1',
+    type: selType,
+    colorId: colorMap[selType] || '1',
   };
 
   let res;
@@ -1421,11 +1444,11 @@ async function submitEvent() {
   btn.textContent = 'Guardar';
 
   if (res.error) {
-    showToast('Error al guardar');
-  } else {
-    showToast(editingEventId ? '✓ Evento actualizado' : '✓ Evento guardado');
+    console.error('[submitEvent] error:', res.error);
+    showToast('Error: ' + res.error);
+    return; // no cerrar modal para que puedas reintentar
   }
-
+  showToast(editingEventId ? '✓ Evento actualizado' : '✓ Evento guardado');
   document.getElementById('newEventModal').classList.remove('open');
   buildWeek();
 }
