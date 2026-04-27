@@ -996,11 +996,57 @@ function isToday(d) {
 }
 
 // ════════════════════════════════════════════════════════════════════
+// AUTH — password compartido (almacenado en localStorage)
+// ════════════════════════════════════════════════════════════════════
+const PWD_KEY = 'onne_calendar_pwd';
+
+function getPassword() {
+  return localStorage.getItem(PWD_KEY) || '';
+}
+
+function setPassword(p) {
+  localStorage.setItem(PWD_KEY, p);
+}
+
+function clearPassword() {
+  localStorage.removeItem(PWD_KEY);
+}
+
+function promptPassword(reason) {
+  const msg = reason ? `${reason}\n\nIngresa el password de acceso:` : 'Ingresa el password de acceso:';
+  const p = window.prompt(msg, '');
+  if (p && p.trim()) {
+    setPassword(p.trim());
+    return p.trim();
+  }
+  return null;
+}
+
+// Wrapper de fetch que adjunta el header y reintenta si falla por 401
+async function authFetch(url, options = {}) {
+  let pwd = getPassword();
+  if (!pwd) {
+    pwd = promptPassword('Acceso requerido');
+    if (!pwd) return new Response(JSON.stringify({ error: 'Sin password' }), { status: 401 });
+  }
+  const headers = Object.assign({}, options.headers || {}, { 'x-app-password': pwd });
+  const r = await fetch(url, Object.assign({}, options, { headers }));
+  if (r.status === 401) {
+    clearPassword();
+    const newPwd = promptPassword('Password incorrecto');
+    if (!newPwd) return r;
+    headers['x-app-password'] = newPwd;
+    return fetch(url, Object.assign({}, options, { headers }));
+  }
+  return r;
+}
+
+// ════════════════════════════════════════════════════════════════════
 // API CALLS
 // ════════════════════════════════════════════════════════════════════
 async function fetchEvents(start, end) {
   try {
-    const r = await fetch(`/api/calendar?start=${encodeURIComponent(start)}&end=${encodeURIComponent(end)}`);
+    const r = await authFetch(`/api/calendar?start=${encodeURIComponent(start)}&end=${encodeURIComponent(end)}`);
     if (!r.ok) {
       const txt = await r.text();
       console.error('[fetchEvents] HTTP', r.status, txt.slice(0, 200));
@@ -1030,7 +1076,7 @@ function flattenError(err, status) {
 async function createEvent(payload) {
   try {
     console.log('[createEvent] payload →', payload);
-    const r = await fetch('/api/calendar', {
+    const r = await authFetch('/api/calendar', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
@@ -1562,7 +1608,7 @@ async function deleteEvent() {
 
 async function updateEventAPI(id, payload) {
   try {
-    const r = await fetch(`/api/calendar?id=${encodeURIComponent(id)}`, {
+    const r = await authFetch(`/api/calendar?id=${encodeURIComponent(id)}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
@@ -1580,7 +1626,7 @@ async function updateEventAPI(id, payload) {
 
 async function deleteEventAPI(id) {
   try {
-    const r = await fetch(`/api/calendar?id=${encodeURIComponent(id)}`, { method: 'DELETE' });
+    const r = await authFetch(`/api/calendar?id=${encodeURIComponent(id)}`, { method: 'DELETE' });
     return await r.json();
   } catch (e) {
     return { error: e.message };
