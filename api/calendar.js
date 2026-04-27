@@ -1,6 +1,6 @@
 // api/calendar.js
 // Vercel serverless function — Google Calendar proxy
-// Env vars needed: GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_REFRESH_TOKEN, CALENDAR_ID, APP_PASSWORD
+// Env vars needed: GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_REFRESH_TOKEN, CALENDAR_ID
 
 const GOOGLE_TOKEN_URL = 'https://oauth2.googleapis.com/token';
 const GCAL_BASE = 'https://www.googleapis.com/calendar/v3';
@@ -32,16 +32,6 @@ function json(res, status, data) {
 export default async function handler(req, res) {
   // CORS preflight
   if (req.method === 'OPTIONS') return res.status(200).end();
-
-  // ── AUTH: password compartido vía header x-app-password ─────────────────
-  const expected = process.env.APP_PASSWORD;
-  if (!expected) {
-    return json(res, 500, { error: 'APP_PASSWORD no configurado en el servidor' });
-  }
-  const provided = req.headers['x-app-password'];
-  if (!provided || provided !== expected) {
-    return json(res, 401, { error: 'No autorizado' });
-  }
 
   const calendarId = encodeURIComponent(process.env.CALENDAR_ID);
   let token;
