@@ -1015,6 +1015,18 @@ async function fetchEvents(start, end) {
   }
 }
 
+// Aplana cualquier forma de error a string legible
+function flattenError(err, status) {
+  if (!err) return `HTTP ${status || '?'}`;
+  if (typeof err === 'string') return err;
+  if (err.message) return err.message;
+  if (err.error) return flattenError(err.error, status);
+  if (Array.isArray(err.errors) && err.errors[0]) {
+    return err.errors[0].message || err.errors[0].reason || JSON.stringify(err.errors[0]);
+  }
+  try { return JSON.stringify(err).slice(0, 200); } catch { return 'Error desconocido'; }
+}
+
 async function createEvent(payload) {
   try {
     console.log('[createEvent] payload →', payload);
@@ -1027,7 +1039,9 @@ async function createEvent(payload) {
     console.log('[createEvent] status:', r.status, 'body:', raw);
     let data;
     try { data = JSON.parse(raw); } catch { data = { error: `HTTP ${r.status}: ${raw.slice(0,120)}` }; }
-    if (!r.ok && !data.error) data.error = `HTTP ${r.status}`;
+    if (!r.ok) {
+      data.error = flattenError(data.error || data, r.status);
+    }
     return data;
   } catch (e) {
     console.error('[createEvent] network error:', e);
@@ -1409,11 +1423,14 @@ function selectType(el) {
 async function submitEvent() {
   const title = document.getElementById('evTitle').value.trim();
   const date  = document.getElementById('evDate').value;
-  const start = document.getElementById('evStart').value;
+  // Si el input está oculto/vacío, usar la variable de estado
+  const start = document.getElementById('evStart').value || selStart || '';
   const end   = document.getElementById('evEnd').value;
   const desc  = document.getElementById('evDesc').value.trim();
 
-  if (!title || !date || !start || !end) { showToast('Completa título y horario'); return; }
+  if (!title) { showToast('Falta título'); return; }
+  if (!selType) { showToast('Elige el tipo (Evaluación / Nutrición / Reunión)'); return; }
+  if (!date || !start || !end) { showToast('Completa fecha y horario'); return; }
   if (start >= end) { showToast('La hora de fin debe ser posterior al inicio'); return; }
 
   const btn = document.getElementById('submitBtn');
@@ -1441,11 +1458,12 @@ async function submitEvent() {
   }
 
   btn.disabled = false;
-  btn.textContent = 'Guardar';
+  btn.textContent = editingEventId ? 'Actualizar' : 'Guardar';
 
-  if (res.error) {
+  if (res && res.error) {
+    const msg = typeof res.error === 'string' ? res.error : flattenError(res.error);
     console.error('[submitEvent] error:', res.error);
-    showToast('Error: ' + res.error);
+    showToast('Error: ' + msg);
     return; // no cerrar modal para que puedas reintentar
   }
   showToast(editingEventId ? '✓ Evento actualizado' : '✓ Evento guardado');
@@ -1549,7 +1567,12 @@ async function updateEventAPI(id, payload) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
     });
-    return await r.json();
+    const raw = await r.text();
+    console.log('[updateEventAPI] status:', r.status, 'body:', raw);
+    let data;
+    try { data = JSON.parse(raw); } catch { data = { error: `HTTP ${r.status}: ${raw.slice(0,120)}` }; }
+    if (!r.ok) data.error = flattenError(data.error || data, r.status);
+    return data;
   } catch (e) {
     return { error: e.message };
   }
