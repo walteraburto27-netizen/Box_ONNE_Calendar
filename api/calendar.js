@@ -79,7 +79,7 @@ export default async function handler(req, res) {
       end:      e.end?.dateTime   || e.end?.date,
       desc:     e.description || '',
       color:    e.colorId || '',
-      type:     detectType(e.summary || ''),
+      type:     typeFromColor(e.colorId) || detectType(e.summary || ''),
     }));
 
     return json(res, 200, { events });
@@ -150,7 +150,20 @@ export default async function handler(req, res) {
   return json(res, 405, { error: 'Método no soportado' });
 }
 
-// ── type detection from title ─────────────────────────────────────────────
+// ── type from Google Calendar colorId (matches colorMap in index.html) ───
+function typeFromColor(colorId) {
+  if (!colorId) return null;
+  const map = {
+    '2':  'eval',
+    '5':  'nutricion',
+    '7':  'reunion',
+    '10': 'clase',
+    '8':  'blocked',
+  };
+  return map[String(colorId)] || null;
+}
+
+// ── type detection from title (fallback when no colorId) ─────────────────
 function detectType(title) {
   const t = title.toLowerCase();
   if (t.includes('evaluación') || t.includes('evaluacion') || t.includes('eval')) return 'eval';

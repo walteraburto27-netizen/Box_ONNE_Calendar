@@ -1449,6 +1449,7 @@ async function buildWeek() {
   const endISO   = endLocal.toISOString();
   console.log('[buildWeek] rango:', startISO, '→', endISO);
   const result = await fetchEvents(startISO, endISO);
+  lastFetchAt = Date.now();
   events = result.events;
 
   // Banner only when the API actually failed — empty calendar is fine.
@@ -1757,6 +1758,27 @@ async function submitEvent() {
   if (!date || !start || !end) { showToast('Completa fecha y horario'); return; }
   if (start >= end) { showToast('La hora de fin debe ser posterior al inicio'); return; }
 
+  // Conflict detection: any overlap with existing events on the same date?
+  const newStart = new Date(`${date}T${start}:00`).getTime();
+  const newEnd   = new Date(`${date}T${end}:00`).getTime();
+  const conflicts = events.filter(ev => {
+    if (editingEventId && ev.id === editingEventId) return false;
+    if (String(ev.id).startsWith('demo-')) return false;
+    const evStart = new Date(ev.start).getTime();
+    const evEnd   = new Date(ev.end).getTime();
+    return evStart < newEnd && evEnd > newStart;
+  });
+  if (conflicts.length > 0) {
+    const list = conflicts.slice(0, 3).map(c => {
+      const s = new Date(c.start);
+      const e2 = new Date(c.end);
+      const hh = (d) => `${d.getHours()}:${String(d.getMinutes()).padStart(2,'0')}`;
+      return `  · ${c.title} (${hh(s)}–${hh(e2)})`;
+    }).join('\n');
+    const extra = conflicts.length > 3 ? `\n  · …y ${conflicts.length - 3} más` : '';
+    if (!confirm(`⚠️ Hay ${conflicts.length} evento${conflicts.length>1?'s':''} en ese horario:\n\n${list}${extra}\n\n¿Agendar igual?`)) return;
+  }
+
   const btn = document.getElementById('submitBtn');
   btn.disabled = true;
   btn.textContent = 'Guardando…';
@@ -1937,12 +1959,23 @@ function showToast(msg) {
 // ════════════════════════════════════════════════════════════════════
 // INIT
 // ════════════════════════════════════════════════════════════════════
+let lastFetchAt = 0;
 if (userPin) {
   buildWeek();
 } else {
   showLockScreen();
 }
 setInterval(renderNowLine, 60000);
+
+// Refresh events when the tab regains focus, but throttle to once per 30s.
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState !== 'visible') return;
+  if (!userPin) return;
+  if (document.getElementById('newEventModal').classList.contains('open')) return;
+  if (document.getElementById('detailModal').classList.contains('open')) return;
+  if (Date.now() - lastFetchAt < 30000) return;
+  buildWeek();
+});
 
 // Long-press (1s) on the live clock to log out.
 (function bindLogoutGesture() {
