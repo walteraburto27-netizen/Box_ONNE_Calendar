@@ -27,11 +27,26 @@ function json(res, status, data) {
   res.status(status).json(data);
 }
 
+function checkPin(req) {
+  const adminPin = process.env.ADMIN_PIN;
+  const staffPin = process.env.STAFF_PIN;
+  // Modo dev: si no hay PINs configurados, no exige auth.
+  if (!adminPin && !staffPin) return { ok: true, role: 'admin' };
+  const pin = req.headers['x-pin'] || req.headers['X-Pin'] || '';
+  if (!pin) return { ok: false, error: 'PIN requerido' };
+  if (adminPin && pin === adminPin) return { ok: true, role: 'admin' };
+  if (staffPin && pin === staffPin) return { ok: true, role: 'staff' };
+  return { ok: false, error: 'PIN incorrecto' };
+}
+
 // ── main handler ─────────────────────────────────────────────────────────────
 
 export default async function handler(req, res) {
   // CORS preflight
   if (req.method === 'OPTIONS') return res.status(200).end();
+
+  const auth = checkPin(req);
+  if (!auth.ok) return json(res, 401, { error: auth.error });
 
   const calendarId = encodeURIComponent(process.env.CALENDAR_ID);
   let token;

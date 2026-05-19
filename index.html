@@ -770,11 +770,208 @@ select.form-input {
   70%  { opacity: 0.6; }
   100% { opacity: 0; }
 }
+
+/* ── API offline banner ──────────────────────────────────────────── */
+.api-banner {
+  display: none;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 14px;
+  margin: 0 16px 10px;
+  background: rgba(180, 120, 60, 0.10);
+  border: 1px solid rgba(180, 120, 60, 0.35);
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 500;
+  color: #d4a574;
+  letter-spacing: 0.02em;
+}
+.api-banner.show { display: flex; }
+.api-banner-text {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+}
+.api-banner-dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: #d4a574;
+  flex-shrink: 0;
+  animation: pulseDot 1.6s ease-in-out infinite;
+}
+@keyframes pulseDot {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.3; }
+}
+.api-banner-retry {
+  background: rgba(212, 165, 116, 0.15);
+  border: 1px solid rgba(212, 165, 116, 0.4);
+  color: #d4a574;
+  font-family: inherit;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 5px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.api-banner-retry:active { opacity: 0.6; }
+
+/* ── PIN lock screen ─────────────────────────────────────────────── */
+.lock-screen {
+  position: fixed;
+  inset: 0;
+  background: var(--bg);
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 28px;
+  z-index: 500;
+  padding: 32px 24px;
+  padding-top: calc(32px + var(--safe-top));
+}
+.lock-screen.show { display: flex; }
+.lock-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.4em;
+  color: var(--steel);
+  text-transform: uppercase;
+}
+.lock-brand::before {
+  content: '';
+  width: 24px; height: 1px;
+  background: var(--steel);
+}
+.lock-title {
+  font-size: 17px;
+  font-weight: 300;
+  color: var(--white);
+  letter-spacing: 0.02em;
+  text-align: center;
+}
+.lock-sub {
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--muted);
+  letter-spacing: 0.04em;
+  text-align: center;
+  margin-top: -16px;
+}
+.lock-dots {
+  display: flex;
+  gap: 14px;
+  margin: 8px 0 4px;
+}
+.lock-dot {
+  width: 14px; height: 14px;
+  border-radius: 50%;
+  border: 1px solid var(--border2);
+  background: transparent;
+  transition: background 0.15s, border-color 0.15s;
+}
+.lock-dot.filled {
+  background: var(--steel);
+  border-color: var(--steel);
+}
+.lock-dot.error {
+  border-color: #c97070;
+  background: rgba(201, 112, 112, 0.2);
+  animation: shake 0.35s;
+}
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25%      { transform: translateX(-4px); }
+  75%      { transform: translateX(4px); }
+}
+.lock-pad {
+  display: grid;
+  grid-template-columns: repeat(3, 70px);
+  gap: 14px;
+  margin-top: 8px;
+}
+.lock-key {
+  width: 70px; height: 70px;
+  border-radius: 50%;
+  border: 1px solid var(--border2);
+  background: var(--surface);
+  color: var(--white);
+  font-family: 'Jost', sans-serif;
+  font-size: 22px;
+  font-weight: 300;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+  -webkit-user-select: none;
+  transition: background 0.1s;
+}
+.lock-key:active { background: var(--surface2); }
+.lock-key.lock-del,
+.lock-key.lock-empty {
+  background: transparent;
+  border-color: transparent;
+  font-size: 14px;
+  color: var(--steel);
+  letter-spacing: 0.08em;
+}
+.lock-key.lock-empty {
+  pointer-events: none;
+}
+.lock-error-msg {
+  font-size: 11px;
+  font-weight: 500;
+  color: #c97070;
+  letter-spacing: 0.04em;
+  height: 14px;
+  text-align: center;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.lock-error-msg.show { opacity: 1; }
 </style>
 </head>
 <body>
 
-
+<!-- ════════ LOCK SCREEN ════════ -->
+<div class="lock-screen" id="lockScreen">
+  <div class="lock-brand">ONNE</div>
+  <div>
+    <div class="lock-title">Ingresa tu PIN</div>
+    <div class="lock-sub" id="lockSub">4 dígitos</div>
+  </div>
+  <div class="lock-dots" id="lockDots">
+    <div class="lock-dot" data-i="0"></div>
+    <div class="lock-dot" data-i="1"></div>
+    <div class="lock-dot" data-i="2"></div>
+    <div class="lock-dot" data-i="3"></div>
+  </div>
+  <div class="lock-error-msg" id="lockError">PIN incorrecto</div>
+  <div class="lock-pad" id="lockPad">
+    <button class="lock-key" data-k="1">1</button>
+    <button class="lock-key" data-k="2">2</button>
+    <button class="lock-key" data-k="3">3</button>
+    <button class="lock-key" data-k="4">4</button>
+    <button class="lock-key" data-k="5">5</button>
+    <button class="lock-key" data-k="6">6</button>
+    <button class="lock-key" data-k="7">7</button>
+    <button class="lock-key" data-k="8">8</button>
+    <button class="lock-key" data-k="9">9</button>
+    <button class="lock-key lock-empty"></button>
+    <button class="lock-key" data-k="0">0</button>
+    <button class="lock-key lock-del" data-k="del">←</button>
+  </div>
+</div>
 
 <!-- ════════ APP ════════ -->
 <div id="app">
@@ -802,6 +999,15 @@ select.form-input {
     <div class="week-days-header" id="weekHeader">
       <div></div>
     </div>
+  </div>
+
+  <!-- API offline banner -->
+  <div class="api-banner" id="apiBanner">
+    <div class="api-banner-text">
+      <div class="api-banner-dot"></div>
+      <span id="apiBannerMsg">API desconectada — viendo datos de demo</span>
+    </div>
+    <button class="api-banner-retry" onclick="buildWeek()">Reintentar</button>
   </div>
 
   <!-- Timeline -->
@@ -892,6 +1098,109 @@ let role     = 'admin';
 let events   = [];
 let weekOff  = 0;   // weeks offset from today
 let selEvent = null;
+
+// ── PIN / auth ───────────────────────────────────────────────────────
+const PIN_STORAGE_KEY = 'box_onne_pin';
+let userPin = localStorage.getItem(PIN_STORAGE_KEY) || '';
+let pinBuffer = '';
+
+function showLockScreen(errorMsg) {
+  pinBuffer = '';
+  renderPinDots();
+  document.getElementById('lockScreen').classList.add('show');
+  const err = document.getElementById('lockError');
+  if (errorMsg) {
+    err.textContent = errorMsg;
+    err.classList.add('show');
+  } else {
+    err.classList.remove('show');
+  }
+}
+
+function hideLockScreen() {
+  document.getElementById('lockScreen').classList.remove('show');
+}
+
+function renderPinDots(state) {
+  document.querySelectorAll('#lockDots .lock-dot').forEach((d, i) => {
+    d.classList.remove('filled', 'error');
+    if (state === 'error') d.classList.add('error');
+    else if (i < pinBuffer.length) d.classList.add('filled');
+  });
+}
+
+function pinKeyPress(k) {
+  if (k === 'del') {
+    pinBuffer = pinBuffer.slice(0, -1);
+    document.getElementById('lockError').classList.remove('show');
+    renderPinDots();
+    return;
+  }
+  if (pinBuffer.length >= 4) return;
+  pinBuffer += k;
+  document.getElementById('lockError').classList.remove('show');
+  renderPinDots();
+  if (pinBuffer.length === 4) tryUnlock();
+}
+
+async function tryUnlock() {
+  const candidate = pinBuffer;
+  // Test the PIN against the API with a minimal request.
+  const now = new Date();
+  const start = new Date(now); start.setHours(0,0,0,0);
+  const end   = new Date(now); end.setHours(23,59,59,999);
+  try {
+    const r = await fetch(
+      `/api/calendar?start=${encodeURIComponent(start.toISOString())}&end=${encodeURIComponent(end.toISOString())}`,
+      { headers: { 'x-pin': candidate } }
+    );
+    if (r.status === 401) {
+      renderPinDots('error');
+      document.getElementById('lockError').textContent = 'PIN incorrecto';
+      document.getElementById('lockError').classList.add('show');
+      setTimeout(() => { pinBuffer = ''; renderPinDots(); }, 450);
+      return;
+    }
+    // 200 or 500 (API config issue) — PIN was accepted; let app handle it.
+    userPin = candidate;
+    localStorage.setItem(PIN_STORAGE_KEY, userPin);
+    hideLockScreen();
+    buildWeek();
+  } catch (e) {
+    // Network error — accept tentatively, let user retry via banner.
+    userPin = candidate;
+    localStorage.setItem(PIN_STORAGE_KEY, userPin);
+    hideLockScreen();
+    buildWeek();
+  }
+}
+
+function handleAuthError() {
+  userPin = '';
+  localStorage.removeItem(PIN_STORAGE_KEY);
+  showLockScreen('Sesión expirada');
+}
+
+function logout() {
+  if (!confirm('¿Cerrar sesión?')) return;
+  userPin = '';
+  localStorage.removeItem(PIN_STORAGE_KEY);
+  showLockScreen();
+}
+
+// Wire keypad
+document.getElementById('lockPad').addEventListener('click', (e) => {
+  const btn = e.target.closest('.lock-key');
+  if (!btn || !btn.dataset.k) return;
+  pinKeyPress(btn.dataset.k);
+});
+
+// Physical keyboard
+document.addEventListener('keydown', (e) => {
+  if (!document.getElementById('lockScreen').classList.contains('show')) return;
+  if (/^[0-9]$/.test(e.key)) pinKeyPress(e.key);
+  else if (e.key === 'Backspace') pinKeyPress('del');
+});
 let selType  = null;
 
 const DAYS_SHORT = ['L','M','X','J','V','S'];
@@ -1000,18 +1309,22 @@ function isToday(d) {
 // ════════════════════════════════════════════════════════════════════
 async function fetchEvents(start, end) {
   try {
-    const r = await fetch(`/api/calendar?start=${encodeURIComponent(start)}&end=${encodeURIComponent(end)}`);
+    const r = await fetch(
+      `/api/calendar?start=${encodeURIComponent(start)}&end=${encodeURIComponent(end)}`,
+      { headers: { 'x-pin': userPin } }
+    );
+    if (r.status === 401) { handleAuthError(); return { ok: false, status: 401, events: [] }; }
     if (!r.ok) {
       const txt = await r.text();
       console.error('[fetchEvents] HTTP', r.status, txt.slice(0, 200));
-      return [];
+      return { ok: false, status: r.status, events: [] };
     }
     const data = await r.json();
     console.log(`[fetchEvents] ${(data.events || []).length} eventos recibidos`);
-    return data.events || [];
+    return { ok: true, events: data.events || [] };
   } catch (e) {
     console.error('[fetchEvents] network error:', e);
-    return [];  // API no disponible — se usarán eventos demo
+    return { ok: false, status: 0, events: [] };
   }
 }
 
@@ -1032,9 +1345,10 @@ async function createEvent(payload) {
     console.log('[createEvent] payload →', payload);
     const r = await fetch('/api/calendar', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'x-pin': userPin },
       body: JSON.stringify(payload)
     });
+    if (r.status === 401) { handleAuthError(); return { error: 'Sesión expirada' }; }
     const raw = await r.text();
     console.log('[createEvent] status:', r.status, 'body:', raw);
     let data;
@@ -1134,10 +1448,20 @@ async function buildWeek() {
   const startISO = startLocal.toISOString();
   const endISO   = endLocal.toISOString();
   console.log('[buildWeek] rango:', startISO, '→', endISO);
-  events = await fetchEvents(startISO, endISO);
+  const result = await fetchEvents(startISO, endISO);
+  events = result.events;
 
-  if (!events || events.length === 0) {
+  // Banner only when the API actually failed — empty calendar is fine.
+  const banner = document.getElementById('apiBanner');
+  const bannerMsg = document.getElementById('apiBannerMsg');
+  if (!result.ok) {
+    bannerMsg.textContent = result.status
+      ? `API desconectada (error ${result.status}) — viendo datos de demo`
+      : 'Sin conexión — viendo datos de demo';
+    banner.classList.add('show');
     events = buildDemoEvents(dates);
+  } else {
+    banner.classList.remove('show');
   }
 
   // Dot indicators in header
@@ -1553,9 +1877,10 @@ async function deleteEvent() {
     document.getElementById('detailModal').classList.remove('open');
     return;
   }
+  if (!confirm(`¿Eliminar "${selEvent.title}"?\n\nEsta acción no se puede deshacer.`)) return;
   const res = await deleteEventAPI(selEvent.id);
   document.getElementById('detailModal').classList.remove('open');
-  if (res.error) { showToast('Error al eliminar'); return; }
+  if (res.error) { showToast('Error al eliminar: ' + res.error); return; }
   showToast('Evento eliminado');
   buildWeek();
 }
@@ -1564,9 +1889,10 @@ async function updateEventAPI(id, payload) {
   try {
     const r = await fetch(`/api/calendar?id=${encodeURIComponent(id)}`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'x-pin': userPin },
       body: JSON.stringify(payload)
     });
+    if (r.status === 401) { handleAuthError(); return { error: 'Sesión expirada' }; }
     const raw = await r.text();
     console.log('[updateEventAPI] status:', r.status, 'body:', raw);
     let data;
@@ -1580,8 +1906,17 @@ async function updateEventAPI(id, payload) {
 
 async function deleteEventAPI(id) {
   try {
-    const r = await fetch(`/api/calendar?id=${encodeURIComponent(id)}`, { method: 'DELETE' });
-    return await r.json();
+    const r = await fetch(`/api/calendar?id=${encodeURIComponent(id)}`, {
+      method: 'DELETE',
+      headers: { 'x-pin': userPin }
+    });
+    if (r.status === 401) { handleAuthError(); return { error: 'Sesión expirada' }; }
+    const raw = await r.text();
+    console.log('[deleteEventAPI] status:', r.status, 'body:', raw);
+    let data;
+    try { data = JSON.parse(raw); } catch { data = { error: `HTTP ${r.status}: ${raw.slice(0,120)}` }; }
+    if (!r.ok) data.error = flattenError(data.error || data, r.status);
+    return data;
   } catch (e) {
     return { error: e.message };
   }
@@ -1602,8 +1937,27 @@ function showToast(msg) {
 // ════════════════════════════════════════════════════════════════════
 // INIT
 // ════════════════════════════════════════════════════════════════════
-buildWeek();
+if (userPin) {
+  buildWeek();
+} else {
+  showLockScreen();
+}
 setInterval(renderNowLine, 60000);
+
+// Long-press (1s) on the live clock to log out.
+(function bindLogoutGesture() {
+  const clock = document.getElementById('liveClock');
+  if (!clock) return;
+  let timer = null;
+  const start = () => { timer = setTimeout(logout, 1000); };
+  const cancel = () => { if (timer) clearTimeout(timer); timer = null; };
+  clock.addEventListener('touchstart', start, { passive: true });
+  clock.addEventListener('touchend',   cancel);
+  clock.addEventListener('touchmove',  cancel);
+  clock.addEventListener('mousedown',  start);
+  clock.addEventListener('mouseup',    cancel);
+  clock.addEventListener('mouseleave', cancel);
+})();
 </script>
 </body>
 </html>
