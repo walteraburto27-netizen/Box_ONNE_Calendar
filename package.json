@@ -1,0 +1,13 @@
+{
+  "name": "box-onne-calendar",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Panel single-file. package.json existe solo para el chequeo de accesibilidad en CI: no hay build ni dependencias de producción.",
+  "scripts": {
+    "test:a11y": "node test/a11y.js"
+  },
+  "devDependencies": {
+    "axe-core": "^4.13.0",
+    "playwright": "^1.63.0"
+  }
+}

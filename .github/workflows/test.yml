@@ -1,0 +1,28 @@
+name: tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# Solo lectura: el job audita, no escribe nada con el GITHUB_TOKEN.
+permissions:
+  contents: read
+
+jobs:
+
+  # Accesibilidad: axe-core (el motor de Lighthouse) sobre el panel. Falla el
+  # build ante cualquier violación WCAG 2.1 A/AA. Agregado el 10-sep-2026, tras
+  # un barrido que encontró violaciones —varias CRITICAL— en 5 de los 10 paneles
+  # de la suite, todas invisibles a simple vista y sobrevivientes a revisiones
+  # manuales. Sin esto el arreglo se degrada solo.
+  a11y:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm install
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:a11y
