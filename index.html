@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#080808">
@@ -26,7 +26,7 @@
   --steel-glow:  rgba(132,142,143,0.15);
   --white:       #FFFFFF;
   --off-white:   #f0efe8;
-  --muted:       #5a5a5a;
+  --muted:       #767676; /* era #5a5a5a: 3.04:1 sobre negro, bajo el 4.5 de WCAG AA */
   --muted2:      #383838;
   /* Tipos de evento — adaptados a paleta ONNE */
   --eval:        #848E8F;
@@ -967,7 +967,7 @@ select.form-input {
     <button class="lock-key" data-k="7">7</button>
     <button class="lock-key" data-k="8">8</button>
     <button class="lock-key" data-k="9">9</button>
-    <button class="lock-key lock-empty"></button>
+    <button class="lock-key lock-empty" aria-hidden="true" tabindex="-1"></button>
     <button class="lock-key" data-k="0">0</button>
     <button class="lock-key lock-del" data-k="del">←</button>
   </div>
@@ -1042,7 +1042,7 @@ select.form-input {
     </div>
 
     <div class="form-group">
-      <label class="form-label">Fecha</label>
+      <label class="form-label" for="evDate">Fecha</label>
       <input class="form-input" id="evDate" type="date" />
     </div>
 
